@@ -1,9 +1,17 @@
+<<<<<<< fbce1811ce5513cf06e2a4617dc1bbe5e852b157
 import React, { Component } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 
 class App extends Component {
   test = () => {};
+=======
+import React, { Component } from 'react';
+import logo from './logo.svg';
+import './App.css';
+
+class App extends Component {
+>>>>>>> Init
   render() {
     return (
       <div className="App">
