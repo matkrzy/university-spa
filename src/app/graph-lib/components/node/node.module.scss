@@ -1,0 +1,38 @@
+$border-radius: 4px;
+
+.node {
+  width: 180px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  box-shadow: 6px 6px 28px -2px rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.7);
+  user-select: none;
+  display: inline-block;
+  color: #fff;
+}
+
+.selected {
+  outline: 1px solid red;
+}
+
+.header {
+  cursor: move;
+  color: white;
+  height: 23px;
+  font-size: 13px;
+  padding-top: 3px;
+  font-weight: 600;
+  padding-left: 10px;
+  letter-spacing: 1px;
+  background: rgba(248, 80, 50, 1);
+  border-bottom: 1px solid #353535;
+  border-top-left-radius: $border-radius;
+  border-top-right-radius: $border-radius;
+}
+
+.body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+}
