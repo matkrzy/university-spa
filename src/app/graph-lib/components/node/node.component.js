@@ -23,7 +23,9 @@ class NodeComponent extends Component {
 
     this.state = {
       selected: false,
-      id: uuid(),
+      id: props.id || uuid(),
+      connectedInputs: 0,
+      connectedOutput: 0,
     };
   }
 
@@ -52,7 +54,7 @@ class NodeComponent extends Component {
 
     return (
       <Draggable {...draggableProps}>
-        <div onDoubleClick={this.handleClick} className={nodeClassNames}>
+        <div onDoubleClick={this.handleClick} className={nodeClassNames} id={this.state.id}>
           <div className={style.header}>{this.props.title}</div>
           <div className={style.body}>
             <NodeListInputs

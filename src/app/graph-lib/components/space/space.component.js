@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import findKey from 'lodash/findKey';
-import get from 'lodash/get';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
@@ -54,11 +52,13 @@ export class GraphSpace extends Component {
 
     this.currentConnection = uuid();
 
+    const { id } = params;
+
     this.setState(prev => ({
       connections: {
         ...prev.connections,
         [this.currentConnection]: {
-          start: params,
+          start: id,
         },
       },
     }));
@@ -79,41 +79,27 @@ export class GraphSpace extends Component {
     e.preventDefault();
     e.stopPropagation();
 
+    if (!this.currentConnection) return null;
+
     const connection = this.state.connections[this.currentConnection];
 
-    this.setState(prev => ({
-      connections: {
-        ...prev.connections,
-        [this.currentConnection]: {
-          ...connection,
-          end: params,
+    const { id } = params;
+
+    this.setState(
+      prev => ({
+        connections: {
+          ...prev.connections,
+          [this.currentConnection]: {
+            ...connection,
+            end: id,
+          },
         },
-      },
-    }));
+      }),
+      () => (this.currentConnection = undefined),
+    );
   };
 
-  onNodeDrag = (event, data) => {
-    const { id, deltaY, deltaX } = data;
-
-    const connectionKey = this.findConnectionbyNodeId(id);
-    const connection = this.state.connections[connectionKey];
-
-    const newStart = {
-      ...connection.start,
-      x: connection.start.x + deltaX,
-      y: connection.start.y + deltaY,
-    };
-
-    const connections = {
-      ...this.state.connections,
-      [connectionKey]: {
-        ...connection,
-        start: newStart,
-      },
-    };
-
-    this.setState({ connections });
-  };
+  onNodeDrag = (event, data) => {};
 
   onNodeDragStart = (event, data) => {
     this.setState({ dragging: true });
@@ -123,8 +109,11 @@ export class GraphSpace extends Component {
     this.setState({ dragging: false });
   };
 
-  findConnectionbyNodeId = id =>
-    findKey(this.state.connections, element => element.end.nodeId === id || element.start.nodeId === id);
+  getElementClientRect = id => {
+    const element = document.getElementById(id);
+
+    return element.getBoundingClientRect();
+  };
 
   render() {
     window.state = this.state;
@@ -162,7 +151,9 @@ export class GraphSpace extends Component {
 
     let newLine = null;
     if (!!this.state.connections[this.currentConnection] && !this.state.connections[this.currentConnection].end) {
-      let start = this.state.connections[this.currentConnection].start;
+      let startId = this.state.connections[this.currentConnection].start;
+      const start = this.getElementClientRect(startId);
+
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
       newLine = <LineComponent start={start} end={end} />;
@@ -172,9 +163,16 @@ export class GraphSpace extends Component {
       <section id="graphSpace" className={styles.space}>
         <NodesComponent>{nodes}</NodesComponent>
         <SvgComopnent ref="svgComponent">
-          {Object.entries(this.state.connections).map(
-            ([key, { start, end }]) => (!!start && !!end ? <LineComponent start={start} end={end} key={key} /> : null),
-          )}
+          {Object.entries(this.state.connections).map(([key, { start, end }]) => {
+            if (!!start && !!end) {
+              const startRect = this.getElementClientRect(start);
+              const endRect = this.getElementClientRect(end);
+
+              return <LineComponent start={startRect} end={endRect} key={key} />;
+            }
+
+            return null;
+          })}
           {newLine}
         </SvgComopnent>
       </section>

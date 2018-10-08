@@ -12,8 +12,18 @@ export class GraphsComponent extends Component {
           outputs={[{ label: 'o' }, {}]}
         />
         <Node
-          draggableProps={{ defaultPosition: { x: 400, y: 150 } }}
-          inputs={[{ label: 'i' }]}
+          draggableProps={{ defaultPosition: { x: 700, y: 550 } }}
+          inputs={[{ label: 'i' }, {}, {}]}
+          outputs={[{ label: 'i' }, {}]}
+        />
+        <Node
+          draggableProps={{ defaultPosition: { x: 200, y: 650 } }}
+          inputs={[{ label: 'i' }, {}, {}]}
+          outputs={[{ label: 'i' }, {}]}
+        />
+        <Node
+          draggableProps={{ defaultPosition: { x: 100, y: 50 } }}
+          inputs={[{ label: 'i' }, {}, {}]}
           outputs={[{ label: 'i' }, {}]}
         />
       </GraphSpace>

@@ -17,7 +17,15 @@ class ConnectionLine extends Component {
   handleClickOutside() {}
 
   render() {
-    const { start, end } = this.props;
+    const start = {
+      x: this.props.start.x + 3,
+      y: this.props.start.y + 4,
+    };
+
+    const end = {
+      x: this.props.end.x + 3,
+      y: this.props.end.y + 4,
+    };
 
     let dist = this.distance([start.x, start.y], [end.x, end.y]);
 

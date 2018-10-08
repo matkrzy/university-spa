@@ -10,18 +10,18 @@ export class NodeListItem extends Component {
     super(props);
 
     this.state = {
-      id: uuid(),
+      id: props.id || uuid(),
+      connectedInputs: 0,
+      connectedOutput: 0,
     };
   }
 
   onMouseDown = e => {
-    const element = e.target.getBoundingClientRect();
-    this.props.onMouseDown(e, { id: this.state.id, x: element.x + 3, y: element.y + 4, nodeId: this.props.nodeId });
+    this.props.onMouseDown(e, { id: this.state.id, nodeId: this.props.nodeId });
   };
 
   onMouseUp = e => {
-    const element = e.target.getBoundingClientRect();
-    this.props.onMouseUp(e, { id: this.state.id, x: element.x + 3, y: element.y + 4, nodeId: this.props.nodeId });
+    this.props.onMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
   };
 
   render() {
