@@ -12,7 +12,7 @@ export class NodeListOutputs extends Component {
   render() {
     return (
       <NodeList>
-        {this.props.outputs.map(({ label }, index) => (
+        {this.props.outputs.map(({ label, id }, index) => (
           <NodeListItem
             label={label || this.props.label}
             type="output"
@@ -20,6 +20,7 @@ export class NodeListOutputs extends Component {
             onMouseDown={this.props.events.onMouseDown}
             onMouseUp={this.props.events.onMouseUp}
             nodeId={this.props.nodeId}
+            id={id}
           />
         ))}
       </NodeList>

@@ -34,6 +34,7 @@ class NodeComponent extends Component {
   handleClickOutside() {
     this.setState({ selected: false });
   }
+  
   onStart = (e, data) => this.props.draggableProps.onStart(e, { ...data, id: this.state.id });
 
   onDrag = (e, data) => this.props.draggableProps.onDrag(e, { ...data, id: this.state.id });

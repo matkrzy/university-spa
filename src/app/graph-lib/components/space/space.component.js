@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
 import { LineComponent } from '../line/line.component';
+import { ContextMenuComponent } from '../context-menu/context-menu.component';
 
 import styles from './space.module.scss';
 
@@ -13,8 +14,10 @@ export class GraphSpace extends Component {
     super(props);
 
     this.state = {
-      connections: {},
-      dragging: false,
+      connections: { ...props.connections },
+      connecting: false,
+      showConnections: false,
+      isContextMenuOpen: false,
     };
 
     this.currentConnection = undefined;
@@ -23,6 +26,8 @@ export class GraphSpace extends Component {
   componentDidMount() {
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', this.onMouseUp);
+
+    this.setState({ showConnections: true });
   }
 
   componentWillUnmount() {
@@ -31,7 +36,17 @@ export class GraphSpace extends Component {
   }
 
   onMouseUp = e => {
-    this.setState({ dragging: false });
+    if (this.state.connecting) {
+      this.setState({ connecting: false });
+
+      const connections = { ...this.state.connections };
+
+      if (connections && this.currentConnection) {
+        delete connections[this.currentConnection];
+        this.setState({ connections });
+        this.currentConnection = undefined;
+      }
+    }
   };
 
   onMouseMove = e => {
@@ -55,6 +70,7 @@ export class GraphSpace extends Component {
     const { id } = params;
 
     this.setState(prev => ({
+      connecting: true,
       connections: {
         ...prev.connections,
         [this.currentConnection]: {
@@ -109,10 +125,29 @@ export class GraphSpace extends Component {
     this.setState({ dragging: false });
   };
 
-  getElementClientRect = id => {
-    const element = document.getElementById(id);
+  toJSON = () => {
+    const nodes = React.Children.map(this.props.children, child => child.props, this.context).map(
+      ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
+    );
+    const connections = this.state.connections;
 
-    return element.getBoundingClientRect();
+    return { nodes, connections };
+  };
+
+  handleContextMenuState = (state, params) =>
+    this.setState(prev => ({
+      isContextMenuOpen: state,
+      contextMenuPosition: prev.mousePos,
+      contextMenuParams: params,
+    }));
+
+  handleConnectionDelete = id => {
+    const connections = { ...this.state.connections };
+    if (connections[id]) {
+      delete connections[id];
+    }
+
+    this.setState({ connections });
   };
 
   render() {
@@ -150,9 +185,8 @@ export class GraphSpace extends Component {
     );
 
     let newLine = null;
-    if (!!this.state.connections[this.currentConnection] && !this.state.connections[this.currentConnection].end) {
-      let startId = this.state.connections[this.currentConnection].start;
-      const start = this.getElementClientRect(startId);
+    if (this.state.connecting) {
+      let start = this.state.connections[this.currentConnection].start;
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
@@ -161,18 +195,28 @@ export class GraphSpace extends Component {
 
     return (
       <section id="graphSpace" className={styles.space}>
+        <ContextMenuComponent
+          position={this.state.contextMenuPosition}
+          isOpen={this.state.isContextMenuOpen}
+          onContextMenu={this.handleContextMenuState}
+          {...this.state.contextMenuParams}
+        />
         <NodesComponent>{nodes}</NodesComponent>
         <SvgComopnent ref="svgComponent">
-          {Object.entries(this.state.connections).map(([key, { start, end }]) => {
-            if (!!start && !!end) {
-              const startRect = this.getElementClientRect(start);
-              const endRect = this.getElementClientRect(end);
-
-              return <LineComponent start={startRect} end={endRect} key={key} />;
-            }
-
-            return null;
-          })}
+          {this.state.showConnections &&
+            Object.entries(this.state.connections).map(
+              ([key, { start, end }]) =>
+                !!start && !!end ? (
+                  <LineComponent
+                    end={end}
+                    id={key}
+                    key={key}
+                    onConnectionDelete={this.handleConnectionDelete}
+                    onContextMenu={this.handleContextMenuState}
+                    start={start}
+                  />
+                ) : null,
+            )}
           {newLine}
         </SvgComopnent>
       </section>
