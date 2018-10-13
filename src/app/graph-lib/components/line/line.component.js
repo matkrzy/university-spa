@@ -19,7 +19,6 @@ class ConnectionLine extends Component {
     e.preventDefault();
 
     const contextMenu = {
-      title: 'menu',
       options: [
         {
           label: 'remove',

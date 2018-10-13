@@ -21,6 +21,7 @@ export class NodeListInputs extends Component {
             onMouseUp={this.props.events.onMouseUp}
             nodeId={this.props.nodeId}
             id={id}
+            calculateConnections={this.props.calculateConnections}
           />
         ))}
       </NodeList>

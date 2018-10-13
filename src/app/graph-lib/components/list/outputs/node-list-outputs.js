@@ -12,7 +12,7 @@ export class NodeListOutputs extends Component {
   render() {
     return (
       <NodeList>
-        {this.props.outputs.map(({ label, id }, index) => (
+        {this.props.outputs.map(({ label, id, maxConnections }, index) => (
           <NodeListItem
             label={label || this.props.label}
             type="output"
@@ -21,6 +21,8 @@ export class NodeListOutputs extends Component {
             onMouseUp={this.props.events.onMouseUp}
             nodeId={this.props.nodeId}
             id={id}
+            calculateConnections={this.props.calculateConnections}
+            maxConnections={maxConnections}
           />
         ))}
       </NodeList>

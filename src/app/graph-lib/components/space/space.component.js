@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { findDOMNode } from 'react-dom';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
@@ -24,8 +25,14 @@ export class GraphSpace extends Component {
   }
 
   componentDidMount() {
+    this.updateConnectionsEvent = new CustomEvent('update-connections', {
+      detail: { calculateConnections: this.calculateConnections },
+    });
+
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', this.onMouseUp);
+
+    document.dispatchEvent(this.updateConnectionsEvent);
 
     this.setState({ showConnections: true });
   }
@@ -45,6 +52,7 @@ export class GraphSpace extends Component {
         delete connections[this.currentConnection];
         this.setState({ connections });
         this.currentConnection = undefined;
+        document.dispatchEvent(this.updateConnectionsEvent);
       }
     }
   };
@@ -61,7 +69,7 @@ export class GraphSpace extends Component {
     });
   };
 
-  onOutputMouseDown = (e, params) => {
+  onOutputMouseDown = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -69,29 +77,38 @@ export class GraphSpace extends Component {
 
     const { id } = params;
 
-    this.setState(prev => ({
-      connecting: true,
-      connections: {
-        ...prev.connections,
-        [this.currentConnection]: {
-          start: id,
+    this.setState(
+      prev => ({
+        connecting: true,
+        connections: {
+          ...prev.connections,
+          [this.currentConnection]: {
+            start: id,
+          },
         },
+      }),
+      () => {
+        if (callback) {
+          callback();
+        }
+
+        document.dispatchEvent(this.updateConnectionsEvent);
       },
-    }));
+    );
   };
 
-  onOutputMouseUp = (e, params) => {
+  onOutputMouseUp = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
     console.log('output mouse up');
   };
 
-  onInputMouseDown = (e, params) => {
+  onInputMouseDown = (e, params, callback) => {
     console.log('input mouse down');
   };
 
-  onInputMouseUp = (e, params) => {
+  onInputMouseUp = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -111,7 +128,14 @@ export class GraphSpace extends Component {
           },
         },
       }),
-      () => (this.currentConnection = undefined),
+      () => {
+        this.currentConnection = undefined;
+        if (callback) {
+          callback();
+        }
+
+        document.dispatchEvent(this.updateConnectionsEvent);
+      },
     );
   };
 
@@ -147,7 +171,16 @@ export class GraphSpace extends Component {
       delete connections[id];
     }
 
-    this.setState({ connections });
+    this.setState({ connections }, () => document.dispatchEvent(this.updateConnectionsEvent));
+  };
+
+  calculateConnections = (id, type) => {
+    const results =
+      type === 'input'
+        ? Object.values(this.state.connections).filter(connection => connection.end === id)
+        : Object.values(this.state.connections).filter(connection => connection.start === id);
+
+    return results.length;
   };
 
   render() {
@@ -164,6 +197,7 @@ export class GraphSpace extends Component {
           onMouseUp: this.onInputMouseUp,
         },
       },
+      calculateConnections: this.calculateConnections,
     };
 
     const draggableProps = {

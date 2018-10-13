@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Draggable from 'react-draggable';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
+import { findDOMNode } from 'react-dom';
 
 import { NodeListInputs } from '../list/inputs/node-list-inputs.component';
 import { NodeListOutputs } from '../list/outputs/node-list-outputs';
@@ -29,12 +30,16 @@ class NodeComponent extends Component {
     };
   }
 
+  componentDidMount() {
+    this.node = findDOMNode(this);
+  }
+
   handleClick = () => this.setState({ selected: true });
 
   handleClickOutside() {
     this.setState({ selected: false });
   }
-  
+
   onStart = (e, data) => this.props.draggableProps.onStart(e, { ...data, id: this.state.id });
 
   onDrag = (e, data) => this.props.draggableProps.onDrag(e, { ...data, id: this.state.id });
@@ -53,8 +58,15 @@ class NodeComponent extends Component {
       onStop: this.onStop,
     };
 
+    const bounds = {
+      left: 0,
+      top: 0,
+      right: window.innerWidth - (this.node ? this.node.getBoundingClientRect().width : 0),
+      bottom: window.innerHeight - (this.node ? this.node.getBoundingClientRect().height : 0),
+    };
+
     return (
-      <Draggable {...draggableProps}>
+      <Draggable {...draggableProps} bounds={bounds}>
         <div onDoubleClick={this.handleClick} className={nodeClassNames} id={this.state.id}>
           <div className={style.header}>{this.props.title}</div>
           <div className={style.body}>
@@ -62,11 +74,13 @@ class NodeComponent extends Component {
               inputs={this.props.inputs}
               events={this.props.spaceProps.events.nodeInputs}
               nodeId={this.state.id}
+              calculateConnections={this.props.spaceProps.calculateConnections}
             />
             <NodeListOutputs
               outputs={this.props.outputs}
               events={this.props.spaceProps.events.nodeOutputs}
               nodeId={this.state.id}
+              calculateConnections={this.props.spaceProps.calculateConnections}
             />
           </div>
         </div>

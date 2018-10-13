@@ -33,3 +33,13 @@ $indicator-size-hover: 12px;
 .label {
   line-height: 0;
 }
+
+.output.disabled,
+.input.disabled {
+  border-color: #dadada;
+  cursor: not-allowed;
+}
+
+.tooltip {
+  z-index: 99999999;
+}

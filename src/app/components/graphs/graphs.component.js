@@ -25,7 +25,7 @@ export class GraphsComponent extends Component {
         <Node
           title="Source of metal"
           draggableProps={{ defaultPosition: { x: 200, y: 300 } }}
-          outputs={[{ label: 'o', id: 'output1' }, { id: 'output2' }]}
+          outputs={[{ label: 'o', id: 'output1', maxConnections: 3 }, { id: 'output2' }]}
         />
         <Node
           title="maczeta"
