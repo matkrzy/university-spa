@@ -7,7 +7,7 @@ import { findDOMNode } from 'react-dom';
 import { NodeListInputs } from '../list/inputs/node-list-inputs.component';
 import { NodeListOutputs } from '../list/outputs/node-list-outputs';
 
-import style from './node.module.scss';
+import styles from './node.module.scss';
 
 const uuid = require('uuid/v4');
 
@@ -47,8 +47,13 @@ class NodeComponent extends Component {
   onStop = (e, data) => this.props.draggableProps.onStop(e, { ...data, id: this.state.id });
 
   render() {
-    const nodeClassNames = classNames(style.node, {
-      [style.selected]: this.state.selected,
+    const nodeClassNames = classNames(styles.node, {
+      [styles.selected]: this.state.selected,
+      [styles.disabled]: this.props.disabled,
+    });
+
+    const headerClassNames = classNames(styles.header, {
+      [styles.disabled]: this.props.disabled,
     });
 
     const draggableProps = {
@@ -66,21 +71,23 @@ class NodeComponent extends Component {
     };
 
     return (
-      <Draggable {...draggableProps} bounds={bounds}>
+      <Draggable {...draggableProps} bounds={bounds} disabled={this.props.disabled}>
         <div onDoubleClick={this.handleClick} className={nodeClassNames} id={this.state.id}>
-          <div className={style.header}>{this.props.title}</div>
-          <div className={style.body}>
+          <div className={headerClassNames}>{this.props.title}</div>
+          <div className={styles.body}>
             <NodeListInputs
               inputs={this.props.inputs}
               events={this.props.spaceProps.events.nodeInputs}
               nodeId={this.state.id}
               calculateConnections={this.props.spaceProps.calculateConnections}
+              disabled={this.props.disabled}
             />
             <NodeListOutputs
               outputs={this.props.outputs}
               events={this.props.spaceProps.events.nodeOutputs}
               nodeId={this.state.id}
               calculateConnections={this.props.spaceProps.calculateConnections}
+              disabled={this.props.disabled}
             />
           </div>
         </div>

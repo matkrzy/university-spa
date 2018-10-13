@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
-import { findDOMNode } from 'react-dom';
 
 import styles from './node-list-item.module.scss';
 
@@ -36,7 +35,7 @@ export class NodeListItem extends Component {
   };
 
   onMouseDown = e => {
-    if (this.state.connections >= this.state.maxConnections) {
+    if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
       return null;
     }
 
@@ -44,7 +43,7 @@ export class NodeListItem extends Component {
   };
 
   onMouseUp = e => {
-    if (this.state.connections >= this.state.maxConnections) {
+    if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
       return null;
     }
 
@@ -53,7 +52,7 @@ export class NodeListItem extends Component {
 
   renderElement = () => {
     const itemClassNames = classNames(styles[this.props.type], styles.indicator, {
-      [styles.disabled]: this.state.connections >= this.state.maxConnections,
+      [styles.disabled]: this.state.connections >= this.state.maxConnections || this.props.disabled,
     });
 
     return (

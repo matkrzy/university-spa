@@ -7,12 +7,13 @@ export class NodeListInputs extends Component {
   static defaultProps = {
     inputs: [],
     label: 'input',
+    disabled: false,
   };
 
   render() {
     return (
       <NodeList>
-        {this.props.inputs.map(({ label, id }, index) => (
+        {this.props.inputs.map(({ label, id, maxConnections }, index) => (
           <NodeListItem
             label={label || this.props.label}
             type="input"
@@ -22,6 +23,8 @@ export class NodeListInputs extends Component {
             nodeId={this.props.nodeId}
             id={id}
             calculateConnections={this.props.calculateConnections}
+            maxConnections={maxConnections}
+            disabled={this.props.disabled}
           />
         ))}
       </NodeList>

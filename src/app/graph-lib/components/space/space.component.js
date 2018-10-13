@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { findDOMNode } from 'react-dom';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';

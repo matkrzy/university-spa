@@ -23,6 +23,7 @@ export class NodeListOutputs extends Component {
             id={id}
             calculateConnections={this.props.calculateConnections}
             maxConnections={maxConnections}
+            disabled={this.props.disabled}
           />
         ))}
       </NodeList>
