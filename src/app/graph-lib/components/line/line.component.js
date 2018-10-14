@@ -4,6 +4,8 @@ import classNames from 'classnames';
 
 import styles from './line.module.scss';
 
+const uuid = require('uuid/v4');
+
 class ConnectionLine extends Component {
   constructor(props) {
     super(props);
@@ -12,8 +14,21 @@ class ConnectionLine extends Component {
       selected: false,
       position: { x: 0, y: 0 },
       contextMenuOpen: false,
+      process: {
+        buildTime: Math.floor(Math.random() * 10) + 4,
+      },
+      dotColor: this.getRandomColor(),
     };
   }
+
+  getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
 
   handleContextMenu = e => {
     e.preventDefault();
@@ -106,8 +121,12 @@ class ConnectionLine extends Component {
 
     const lineClickAreaClassNames = classNames(styles.lineClickArea, {});
 
+    const progressCircleId = uuid();
+    const progressPathId = uuid();
+
     return (
       <g>
+        <circle r="5" fill={this.state.dotColor} id={progressCircleId} />
         <circle cx={start.x} cy={start.y} r="3" fill="#337ab7" />
         <circle cx={end.x} cy={end.y} r="3" fill="#9191A8" />
         <path
@@ -122,7 +141,21 @@ class ConnectionLine extends Component {
           d={pathString}
           onClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
+          id={progressPathId}
         />
+
+        {!this.props.connecting && (
+          <animateMotion
+            href={`#${progressCircleId}`}
+            dur={`${this.state.process.buildTime}s`}
+            begin="0s"
+            fill="freeze"
+            repeatCount="indefinite"
+            rotate="auto-reverse"
+          >
+            <mpath href={`#${progressPathId}`} />
+          </animateMotion>
+        )}
       </g>
     );
   }

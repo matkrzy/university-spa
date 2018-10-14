@@ -30,7 +30,7 @@ export class NodeListItem extends Component {
 
   calculateConnections = e => {
     this.setState({
-      connections: this.props.calculateConnections(this.state.id, this.props.type),
+      connections: e.detail.calculateConnections(this.state.id, this.props.type),
     });
   };
 

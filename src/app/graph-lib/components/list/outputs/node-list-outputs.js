@@ -21,7 +21,6 @@ export class NodeListOutputs extends Component {
             onMouseUp={this.props.events.onMouseUp}
             nodeId={this.props.nodeId}
             id={id}
-            calculateConnections={this.props.calculateConnections}
             maxConnections={maxConnections}
             disabled={this.props.disabled}
           />

@@ -79,14 +79,12 @@ class NodeComponent extends Component {
               inputs={this.props.inputs}
               events={this.props.spaceProps.events.nodeInputs}
               nodeId={this.state.id}
-              calculateConnections={this.props.spaceProps.calculateConnections}
               disabled={this.props.disabled}
             />
             <NodeListOutputs
               outputs={this.props.outputs}
               events={this.props.spaceProps.events.nodeOutputs}
               nodeId={this.state.id}
-              calculateConnections={this.props.spaceProps.calculateConnections}
               disabled={this.props.disabled}
             />
           </div>

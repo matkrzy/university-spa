@@ -28,13 +28,13 @@ export class GraphsComponent extends Component {
           outputs={[{ label: 'o', id: 'output1', maxConnections: 3 }, { id: 'output2' }]}
         />
         <Node
-          title="maczeta"
+          title="Cutting machine"
           draggableProps={{ defaultPosition: { x: 790, y: 137 } }}
           inputs={[{ label: 'i', id: 'maczeta' }, {}, {}]}
           outputs={[{ label: 'i' }, {}]}
         />
         <Node
-          title="Maczeta"
+          title="Soldering machine"
           draggableProps={{ defaultPosition: { x: 777, y: 425 } }}
           inputs={[{ label: 'i', id: 'input1' }, {}, {}]}
           outputs={[{ label: 'i' }, {}]}

@@ -196,7 +196,6 @@ export class GraphSpace extends Component {
           onMouseUp: this.onInputMouseUp,
         },
       },
-      calculateConnections: this.calculateConnections,
     };
 
     const draggableProps = {
@@ -223,7 +222,7 @@ export class GraphSpace extends Component {
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
-      newLine = <LineComponent start={start} end={end} />;
+      newLine = <LineComponent start={start} end={end} connecting />;
     }
 
     return (
