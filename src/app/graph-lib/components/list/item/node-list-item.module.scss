@@ -1,0 +1,53 @@
+$indicator-size: 8px;
+$indicator-size-hover: 12px;
+
+.item {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 10px;
+  position: relative;
+}
+
+.item--input {
+  flex-direction: row;
+}
+
+.item--output {
+  flex-direction: row-reverse;
+}
+
+.indicator {
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid red;
+  width: $indicator-size;
+  height: $indicator-size;
+}
+
+.input {
+  border-color: yellow;
+  margin-right: 5px;
+}
+
+.output {
+  margin-left: 5px;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.label {
+  line-height: 0;
+}
+
+.output.disabled,
+.input.disabled {
+  border-color: #dadada;
+  cursor: not-allowed;
+}
+
+.tooltip {
+  z-index: 99999999;
+}
