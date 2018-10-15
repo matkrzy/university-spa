@@ -3,6 +3,8 @@ import classNames from 'classnames';
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap.css';
 
+import { NODE_INPUT, UPDATE_CONNECTIONS_EVENT } from '../../../dictionary';
+
 import styles from './node-list-item.module.scss';
 
 const uuid = require('uuid/v4');
@@ -10,23 +12,23 @@ const uuid = require('uuid/v4');
 export class NodeListItem extends Component {
   constructor(props) {
     super(props);
-
-    const id = props.id || uuid();
-
+    
     this.state = {
-      id,
+      id: props.id || uuid(),
       connections: 0,
       maxConnections: props.maxConnections || 1,
     };
   }
 
   componentDidMount() {
-    document.addEventListener('update-connections', this.calculateConnections);
+    document.addEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
   }
 
   componentWillUnmount() {
-    document.removeEventListener('update-connections', this.calculateConnections);
+    document.removeEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
   }
+  
+  getId = ()=>this.state.id;
 
   calculateConnections = e => {
     this.setState({
@@ -67,7 +69,7 @@ export class NodeListItem extends Component {
     if (this.state.connections >= this.state.maxConnections) {
       return (
         <Tooltip
-          placement={this.props.type === 'input' ? 'left' : 'right'}
+          placement={this.props.type === NODE_INPUT ? 'left' : 'right'}
           overlay="Maximum connections reached"
           overlayClassName={styles.tooltip}
         >

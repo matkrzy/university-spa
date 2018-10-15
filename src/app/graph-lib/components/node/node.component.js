@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { findDOMNode } from 'react-dom';
 
 import { NodeListInputs } from '../list/inputs/node-list-inputs.component';
-import { NodeListOutputs } from '../list/outputs/node-list-outputs';
+import { NodeListOutputsComponent } from '../list/outputs/node-list-outputs.component';
 
 import styles from './node.module.scss';
 
@@ -27,11 +27,25 @@ class NodeComponent extends Component {
       id: props.id || uuid(),
       connectedInputs: 0,
       connectedOutput: 0,
+      dragging: false,
+      position: props.draggableProps.defaultPosition,
     };
+
+    this.inputsRef = React.createRef();
+    this.outputsRef = React.createRef();
   }
+
+  getPosition = () => this.state.position;
+
+  getId = () => this.state.id;
+
+  getInputRefs = () => this.inputsRef.current;
+
+  getOutputsRef = () => this.outputsRef.current;
 
   componentDidMount() {
     this.node = findDOMNode(this);
+    this.props.spaceProps.createRef(this.state.id, this);
   }
 
   handleClick = () => this.setState({ selected: true });
@@ -40,16 +54,28 @@ class NodeComponent extends Component {
     this.setState({ selected: false });
   }
 
-  onStart = (e, data) => this.props.draggableProps.onStart(e, { ...data, id: this.state.id });
+  onStart = (e, data) => {
+    this.setState({ dragging: true });
+    this.props.draggableProps.onStart(e, { ...data, id: this.state.id });
+  };
 
-  onDrag = (e, data) => this.props.draggableProps.onDrag(e, { ...data, id: this.state.id });
+  onDrag = (e, data) => {
+    this.props.draggableProps.onDrag(e, { ...data, id: this.state.id });
+  };
 
-  onStop = (e, data) => this.props.draggableProps.onStop(e, { ...data, id: this.state.id });
+  onStop = (e, data) => {
+    const { x, y } = data;
+
+    this.setState({ dragging: false, position: { x, y } });
+
+    this.props.draggableProps.onStop(e, { ...data, id: this.state.id });
+  };
 
   render() {
     const nodeClassNames = classNames(styles.node, {
       [styles.selected]: this.state.selected,
       [styles.disabled]: this.props.disabled,
+      [styles.dragging]: this.state.dragging,
     });
 
     const headerClassNames = classNames(styles.header, {
@@ -76,12 +102,14 @@ class NodeComponent extends Component {
           <div className={headerClassNames}>{this.props.title}</div>
           <div className={styles.body}>
             <NodeListInputs
+              ref={this.inputsRef}
               inputs={this.props.inputs}
               events={this.props.spaceProps.events.nodeInputs}
               nodeId={this.state.id}
               disabled={this.props.disabled}
             />
-            <NodeListOutputs
+            <NodeListOutputsComponent
+              ref={this.outputsRef}
               outputs={this.props.outputs}
               events={this.props.spaceProps.events.nodeOutputs}
               nodeId={this.state.id}

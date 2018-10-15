@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
+import isEqual from 'react-fast-compare';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
 import { LineComponent } from '../line/line.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
+
+import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT } from '../../dictionary';
 
 import styles from './space.module.scss';
 
@@ -21,15 +24,19 @@ export class GraphSpace extends Component {
     };
 
     this.currentConnection = undefined;
+    this.nodeRefs = {};
   }
 
   componentDidMount() {
-    this.updateConnectionsEvent = new CustomEvent('update-connections', {
+    this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
       detail: { calculateConnections: this.calculateConnections },
     });
 
+    this.saveSpaceModel = new Event(SAVE_SPACE_MODEL);
+
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', this.onMouseUp);
+    document.addEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
 
     document.dispatchEvent(this.updateConnectionsEvent);
 
@@ -39,7 +46,12 @@ export class GraphSpace extends Component {
   componentWillUnmount() {
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
+    document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
   }
+
+  handleSaveSpaceModel = () => {
+    localStorage.setItem('space', JSON.stringify(this.toJSON()));
+  };
 
   onMouseUp = e => {
     if (this.state.connecting) {
@@ -134,6 +146,7 @@ export class GraphSpace extends Component {
         }
 
         document.dispatchEvent(this.updateConnectionsEvent);
+        document.dispatchEvent(this.saveSpaceModel);
       },
     );
   };
@@ -149,7 +162,45 @@ export class GraphSpace extends Component {
   };
 
   toJSON = () => {
-    const nodes = React.Children.map(this.props.children, child => child.props, this.context).map(
+    const nodes = React.Children.map(
+      this.props.children,
+      (child, index) => {
+        const props = child.props;
+        const draggableProps = props.draggableProps;
+
+        const ref = Object.values(this.nodeRefs)[index];
+        const componentInputs = ref.getInputRefs().listRef || [];
+        const componentOutputs = ref.getOutputsRef().listRef || [];
+        const inputs = props.inputs || [];
+        const outputs = props.outputs || [];
+        const position = ref.getPosition();
+        const id = ref.getId();
+
+        const newInputs = inputs.map((input, index) => {
+          const id = componentInputs[index].getId();
+
+          return { ...input, id };
+        });
+
+        const newOutputs = outputs.map((input, index) => {
+          const id = componentOutputs[index].getId();
+
+          return { ...input, id };
+        });
+
+        return {
+          ...props,
+          id,
+          inputs: newInputs,
+          outputs: newOutputs,
+          draggableProps: {
+            ...draggableProps,
+            defaultPosition: position,
+          },
+        };
+      },
+      this.context,
+    ).map(
       ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
     );
     const connections = this.state.connections;
@@ -170,7 +221,10 @@ export class GraphSpace extends Component {
       delete connections[id];
     }
 
-    this.setState({ connections }, () => document.dispatchEvent(this.updateConnectionsEvent));
+    this.setState({ connections }, () => {
+      document.dispatchEvent(this.updateConnectionsEvent);
+      document.dispatchEvent(this.saveSpaceModel);
+    });
   };
 
   calculateConnections = (id, type) => {
@@ -183,7 +237,7 @@ export class GraphSpace extends Component {
   };
 
   render() {
-    window.state = this.state;
+    window.space = this;
 
     const spaceProps = {
       events: {
@@ -196,6 +250,7 @@ export class GraphSpace extends Component {
           onMouseUp: this.onInputMouseUp,
         },
       },
+      createRef: (id, ref) => (this.nodeRefs[id] = ref),
     };
 
     const draggableProps = {
