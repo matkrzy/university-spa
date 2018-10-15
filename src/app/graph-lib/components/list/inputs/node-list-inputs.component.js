@@ -29,7 +29,7 @@ export class NodeListInputs extends Component {
             type={NODE_INPUT}
             key={`${label}-${index}`}
             onMouseDown={this.props.events.onMouseDown}
-            onMouseUp={this.props.events.onMouseUp}
+            onMouseUp={this.props.events.handleMouseUp}
             nodeId={this.props.nodeId}
             id={id}
             maxConnections={maxConnections}

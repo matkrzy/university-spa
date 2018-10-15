@@ -49,7 +49,7 @@ export class NodeListItem extends Component {
       return null;
     }
 
-    this.props.onMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
+    this.props.handleMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
   };
 
   renderElement = () => {

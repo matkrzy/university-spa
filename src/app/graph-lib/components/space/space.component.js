@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
-import isEqual from 'react-fast-compare';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
 import { LineComponent } from '../line/line.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
 
-import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT } from '../../dictionary';
+import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
 
 import styles from './space.module.scss';
 
@@ -32,20 +31,19 @@ export class GraphSpace extends Component {
       detail: { calculateConnections: this.calculateConnections },
     });
 
-    this.saveSpaceModel = new Event(SAVE_SPACE_MODEL);
+    this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
 
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('mouseup', this.onMouseUp);
+    document.addEventListener(MOUSE_MOVE, this.handleMouseMove);
+    document.addEventListener(MOUSE_UP, this.handleMouseUp);
     document.addEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
 
     document.dispatchEvent(this.updateConnectionsEvent);
-
     this.setState({ showConnections: true });
   }
 
   componentWillUnmount() {
-    document.removeEventListener('mousemove', this.onMouseMove);
-    document.removeEventListener('mouseup', this.onMouseUp);
+    document.removeEventListener(MOUSE_MOVE, this.handleMouseMove);
+    document.removeEventListener(MOUSE_UP, this.handleMouseUp);
     document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
   }
 
@@ -53,7 +51,7 @@ export class GraphSpace extends Component {
     localStorage.setItem('space', JSON.stringify(this.toJSON()));
   };
 
-  onMouseUp = e => {
+  handleMouseUp = (e, params, callback) => {
     if (this.state.connecting) {
       this.setState({ connecting: false });
 
@@ -68,7 +66,7 @@ export class GraphSpace extends Component {
     }
   };
 
-  onMouseMove = e => {
+  handleMouseMove = (e, params, callback) => {
     e.stopPropagation();
     e.preventDefault();
 
@@ -80,7 +78,7 @@ export class GraphSpace extends Component {
     });
   };
 
-  onOutputMouseDown = (e, params, callback) => {
+  handleOutputMouseDown = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -99,27 +97,23 @@ export class GraphSpace extends Component {
         },
       }),
       () => {
-        if (callback) {
-          callback();
-        }
-
         document.dispatchEvent(this.updateConnectionsEvent);
       },
     );
   };
 
-  onOutputMouseUp = (e, params, callback) => {
+  handleOutputMouseUp = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
     console.log('output mouse up');
   };
 
-  onInputMouseDown = (e, params, callback) => {
+  handleInputMouseDown = (e, params, callback) => {
     console.log('input mouse down');
   };
 
-  onInputMouseUp = (e, params, callback) => {
+  handleInputMouseUp = (e, params, callback) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -141,24 +135,51 @@ export class GraphSpace extends Component {
       }),
       () => {
         this.currentConnection = undefined;
-        if (callback) {
-          callback();
-        }
 
         document.dispatchEvent(this.updateConnectionsEvent);
-        document.dispatchEvent(this.saveSpaceModel);
+        document.dispatchEvent(this.saveSpaceModelEvent);
       },
     );
   };
 
-  onNodeDrag = (event, data) => {};
+  onNodeDrag = (event, data, callback) => {};
 
-  onNodeDragStart = (event, data) => {
+  onNodeDragStart = (event, data, callback) => {
     this.setState({ dragging: true });
   };
 
-  onNodeDragStop = (event, data) => {
+  onNodeDragStop = (event, data, callback) => {
     this.setState({ dragging: false });
+
+    document.dispatchEvent(this.saveSpaceModelEvent);
+  };
+
+  handleContextMenuState = (state, params, callback) =>
+    this.setState(prev => ({
+      isContextMenuOpen: state,
+      contextMenuPosition: prev.mousePos,
+      contextMenuParams: params,
+    }));
+
+  handleConnectionDelete = (id, callback) => {
+    const connections = { ...this.state.connections };
+    if (connections[id]) {
+      delete connections[id];
+    }
+
+    this.setState({ connections }, () => {
+      document.dispatchEvent(this.updateConnectionsEvent);
+      document.dispatchEvent(this.saveSpaceModelEvent);
+    });
+  };
+
+  calculateConnections = (id, type, callback) => {
+    const results =
+      type === 'input'
+        ? Object.values(this.state.connections).filter(connection => connection.end === id)
+        : Object.values(this.state.connections).filter(connection => connection.start === id);
+
+    return results.length;
   };
 
   toJSON = () => {
@@ -208,47 +229,13 @@ export class GraphSpace extends Component {
     return { nodes, connections };
   };
 
-  handleContextMenuState = (state, params) =>
-    this.setState(prev => ({
-      isContextMenuOpen: state,
-      contextMenuPosition: prev.mousePos,
-      contextMenuParams: params,
-    }));
-
-  handleConnectionDelete = id => {
-    const connections = { ...this.state.connections };
-    if (connections[id]) {
-      delete connections[id];
-    }
-
-    this.setState({ connections }, () => {
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModel);
-    });
-  };
-
-  calculateConnections = (id, type) => {
-    const results =
-      type === 'input'
-        ? Object.values(this.state.connections).filter(connection => connection.end === id)
-        : Object.values(this.state.connections).filter(connection => connection.start === id);
-
-    return results.length;
-  };
-
   render() {
     window.space = this;
 
     const spaceProps = {
       events: {
-        nodeOutputs: {
-          onMouseDown: this.onOutputMouseDown,
-          onMouseUp: this.onOutputMouseUp,
-        },
-        nodeInputs: {
-          onMouseDown: this.onInputMouseDown,
-          onMouseUp: this.onInputMouseUp,
-        },
+        nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
+        nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
       },
       createRef: (id, ref) => (this.nodeRefs[id] = ref),
     };
@@ -295,12 +282,12 @@ export class GraphSpace extends Component {
               ([key, { start, end }]) =>
                 !!start && !!end ? (
                   <LineComponent
-                    end={end}
                     id={key}
+                    start={start}
+                    end={end}
                     key={key}
                     onConnectionDelete={this.handleConnectionDelete}
                     onContextMenu={this.handleContextMenuState}
-                    start={start}
                   />
                 ) : null,
             )}
