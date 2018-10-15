@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 
 import { GraphSpace, Node } from 'app/graph-lib';
 
-const uuid = require('uuid/v4');
-
 const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   nodes: [
     {

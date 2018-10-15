@@ -88,7 +88,7 @@ class ConnectionLine extends Component {
     const endRect = typeof this.props.end === 'string' ? this.getElementClientRect(this.props.end) : this.props.end;
 
     if (!startRect || !endRect) {
-      console.error('One line is skiped');
+      console.error('One line is skipped');
       return null;
     }
 

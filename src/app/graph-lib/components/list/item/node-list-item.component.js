@@ -12,7 +12,7 @@ const uuid = require('uuid/v4');
 export class NodeListItem extends Component {
   constructor(props) {
     super(props);
-    
+
     this.state = {
       id: props.id || uuid(),
       connections: 0,
@@ -27,8 +27,8 @@ export class NodeListItem extends Component {
   componentWillUnmount() {
     document.removeEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
   }
-  
-  getId = ()=>this.state.id;
+
+  getId = () => this.state.id;
 
   calculateConnections = e => {
     this.setState({
@@ -36,7 +36,7 @@ export class NodeListItem extends Component {
     });
   };
 
-  onMouseDown = e => {
+  handleMouseDown = e => {
     if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
       return null;
     }
@@ -44,22 +44,29 @@ export class NodeListItem extends Component {
     this.props.onMouseDown(e, { id: this.state.id, nodeId: this.props.nodeId });
   };
 
-  onMouseUp = e => {
+  handleMouseUp = e => {
     if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
       return null;
     }
 
-    this.props.handleMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
+    this.props.onMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
   };
 
   renderElement = () => {
-    const itemClassNames = classNames(styles[this.props.type], styles.indicator, {
+    const indicatorClassNames = classNames(styles[this.props.type], styles.indicator, {
       [styles.disabled]: this.state.connections >= this.state.maxConnections || this.props.disabled,
     });
 
+    const itemClassNames = classNames(styles.item, styles[`item--${this.props.type}`]);
+
     return (
-      <li className={styles.item} id={this.state.id} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp}>
-        <div className={itemClassNames} />
+      <li className={itemClassNames}>
+        <div
+          className={indicatorClassNames}
+          onMouseDown={this.handleMouseDown}
+          onMouseUp={this.handleMouseUp}
+          id={this.state.id}
+        />
         <span className={styles.label}>{this.props.label}</span>
       </li>
     );

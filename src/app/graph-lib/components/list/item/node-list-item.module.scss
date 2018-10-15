@@ -9,6 +9,14 @@ $indicator-size-hover: 12px;
   position: relative;
 }
 
+.item--input {
+  flex-direction: row;
+}
+
+.item--output {
+  flex-direction: row-reverse;
+}
+
 .indicator {
   border-radius: 50%;
   display: inline-block;
@@ -23,7 +31,7 @@ $indicator-size-hover: 12px;
 }
 
 .output {
-  margin-right: 5px;
+  margin-left: 5px;
 
   &:hover {
     cursor: pointer;

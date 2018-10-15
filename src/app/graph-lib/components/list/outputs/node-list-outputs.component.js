@@ -24,16 +24,15 @@ export class NodeListOutputsComponent extends Component {
       <NodeList>
         {this.props.outputs.map(({ label, id, maxConnections }, index) => (
           <NodeListItem
-            label={label || this.props.label}
+            id={id}
             type={NODE_OUTPUT}
             key={`${label}-${index}`}
-            onMouseDown={this.props.events.onMouseDown}
-            onMouseUp={this.props.events.handleMouseUp}
+            ref={this.addRef}
             nodeId={this.props.nodeId}
-            id={id}
+            label={label || this.props.label}
             maxConnections={maxConnections}
             disabled={this.props.disabled}
-            ref={this.addRef}
+            {...this.props.events}
           />
         ))}
       </NodeList>
