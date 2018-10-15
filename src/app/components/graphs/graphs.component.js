@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { GraphSpace, Node } from 'app/graph-lib';
+import { GraphSpace } from 'app/graph-lib';
 
 const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   nodes: [
@@ -60,12 +60,9 @@ const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   },
 };
 
-console.log(defaultSpace);
-
 export class GraphsComponent extends Component {
   constructor(props) {
     super(props);
-
     this.space = React.createRef();
   }
 
@@ -94,12 +91,6 @@ export class GraphsComponent extends Component {
   render() {
     window.refs = this.space;
 
-    return (
-      <GraphSpace connections={defaultSpace.connections} ref={this.space}>
-        {defaultSpace.nodes.map(node => (
-          <Node {...node} key={node.id} />
-        ))}
-      </GraphSpace>
-    );
+    return <GraphSpace connections={defaultSpace.connections} nodes={defaultSpace.nodes} ref={this.space} />;
   }
 }

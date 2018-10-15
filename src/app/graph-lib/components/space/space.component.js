@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
+import findIndex from 'lodash/findIndex';
+import remove from 'lodash/remove';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
 import { LineComponent } from '../line/line.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
+import { Node } from '../node/node.component';
 
 import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
 
@@ -17,6 +20,7 @@ export class GraphSpace extends Component {
 
     this.state = {
       connections: { ...props.connections },
+      nodes: this.prepareNodes(props.nodes),
       connecting: false,
       showConnections: false,
       isContextMenuOpen: false,
@@ -46,6 +50,33 @@ export class GraphSpace extends Component {
     document.removeEventListener(MOUSE_UP, this.handleMouseUp);
     document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
   }
+
+  spaceProps = () => ({
+    events: {
+      nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
+      nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
+    },
+    createRef: (id, ref) => (this.nodeRefs[id] = ref),
+  });
+
+  draggableProps = () => ({
+    onDrag: this.onNodeDrag,
+    onStart: this.onNodeDragStart,
+    onStop: this.onNodeDragStop,
+  });
+
+  prepareNodes = nodes => {
+    return nodes.map(node => {
+      const props = {
+        ...node,
+        spaceProps: this.spaceProps(),
+        draggableProps: { ...node.draggableProps, ...this.draggableProps() },
+        key: node.id,
+      };
+
+      return <Node {...props} />;
+    });
+  };
 
   handleSaveSpaceModel = () => {
     localStorage.setItem('space', JSON.stringify(this.toJSON()));
@@ -183,10 +214,10 @@ export class GraphSpace extends Component {
   };
 
   toJSON = () => {
-    const nodes = React.Children.map(
-      this.props.children,
-      (child, index) => {
-        const props = child.props;
+    const nodes = this.state.nodes
+      .map((node, index) => {
+        console.log(node);
+        const props = node.props;
         const draggableProps = props.draggableProps;
 
         const ref = Object.values(this.nodeRefs)[index];
@@ -219,44 +250,38 @@ export class GraphSpace extends Component {
             defaultPosition: position,
           },
         };
-      },
-      this.context,
-    ).map(
-      ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
-    );
+      })
+      .map(
+        ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
+      );
+
     const connections = this.state.connections;
 
     return { nodes, connections };
   };
 
+  addNode = (params = {}) => {
+    const props = {
+      ...params,
+      spaceProps: this.spaceProps(),
+      draggableProps: { ...params.draggableProps, ...this.draggableProps() },
+      key: uuid(),
+    };
+
+    this.setState(
+      prev => ({ nodes: [...prev.nodes, <Node {...props} />] }),
+      () => document.dispatchEvent(this.saveSpaceModelEvent),
+    );
+  };
+
+  removeNode = id => {
+    const nodes = remove(this.state.nodes, item => item.props.id !== id);
+
+    this.setState({ nodes }, () => document.dispatchEvent(this.saveSpaceModelEvent));
+  };
+
   render() {
     window.space = this;
-
-    const spaceProps = {
-      events: {
-        nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
-        nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
-      },
-      createRef: (id, ref) => (this.nodeRefs[id] = ref),
-    };
-
-    const draggableProps = {
-      onDrag: this.onNodeDrag,
-      onStart: this.onNodeDragStart,
-      onStop: this.onNodeDragStop,
-    };
-
-    const nodes = React.Children.map(
-      this.props.children,
-      child => {
-        const childProps = child.props;
-        return React.cloneElement(child, {
-          spaceProps,
-          draggableProps: { ...childProps.draggableProps, ...draggableProps },
-        });
-      },
-      this.context,
-    );
 
     let newLine = null;
     if (this.state.connecting) {
@@ -275,7 +300,7 @@ export class GraphSpace extends Component {
           onContextMenu={this.handleContextMenuState}
           {...this.state.contextMenuParams}
         />
-        <NodesComponent>{nodes}</NodesComponent>
+        <NodesComponent>{this.state.nodes}</NodesComponent>
         <SvgComopnent ref="svgComponent">
           {this.state.showConnections &&
             Object.entries(this.state.connections).map(
