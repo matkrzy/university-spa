@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import findIndex from 'lodash/findIndex';
 import remove from 'lodash/remove';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
 import { LineComponent } from '../line/line.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
-import { Node } from '../node/node.component';
+import { NodeWithContextComponent } from '../node/node-with-context.component';
+
+import { createSpaceContext } from '../../contexts/space.context';
 
 import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
 
@@ -26,17 +27,32 @@ export class GraphSpace extends Component {
       isContextMenuOpen: false,
     };
 
-    this.currentConnection = undefined;
-    this.nodeRefs = {};
-  }
-
-  componentDidMount() {
     this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
       detail: { calculateConnections: this.calculateConnections },
     });
 
     this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
 
+    this.currentConnection = undefined;
+    this.nodeRefs = {};
+
+    createSpaceContext({
+      events: {
+        nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
+        nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
+        addNode: this.addNode,
+        removeNode: this.removeNode,
+      },
+      draggableEvents: {
+        onDrag: this.onNodeDrag,
+        onStart: this.onNodeDragStart,
+        onStop: this.onNodeDragStop,
+      },
+      createNodeRef: (id, ref) => (this.nodeRefs[id] = ref),
+    });
+  }
+
+  componentDidMount() {
     document.addEventListener(MOUSE_MOVE, this.handleMouseMove);
     document.addEventListener(MOUSE_UP, this.handleMouseUp);
     document.addEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
@@ -51,32 +67,7 @@ export class GraphSpace extends Component {
     document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
   }
 
-  spaceProps = () => ({
-    events: {
-      nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
-      nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
-    },
-    createRef: (id, ref) => (this.nodeRefs[id] = ref),
-  });
-
-  draggableProps = () => ({
-    onDrag: this.onNodeDrag,
-    onStart: this.onNodeDragStart,
-    onStop: this.onNodeDragStop,
-  });
-
-  prepareNodes = nodes => {
-    return nodes.map(node => {
-      const props = {
-        ...node,
-        spaceProps: this.spaceProps(),
-        draggableProps: { ...node.draggableProps, ...this.draggableProps() },
-        key: node.id,
-      };
-
-      return <Node {...props} />;
-    });
-  };
+  prepareNodes = nodes => nodes.map(node => <NodeWithContextComponent {...node} key={node.id} />);
 
   handleSaveSpaceModel = () => {
     localStorage.setItem('space', JSON.stringify(this.toJSON()));
@@ -216,7 +207,6 @@ export class GraphSpace extends Component {
   toJSON = () => {
     const nodes = this.state.nodes
       .map((node, index) => {
-        console.log(node);
         const props = node.props;
         const draggableProps = props.draggableProps;
 
@@ -252,7 +242,15 @@ export class GraphSpace extends Component {
         };
       })
       .map(
-        ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
+        ({
+          eventTypes,
+          excludeScrollbar,
+          outsideClickIgnoreClass,
+          preventDefault,
+          stopPropagation,
+          spaceProps,
+          ...other
+        }) => other,
       );
 
     const connections = this.state.connections;
@@ -263,13 +261,11 @@ export class GraphSpace extends Component {
   addNode = (params = {}) => {
     const props = {
       ...params,
-      spaceProps: this.spaceProps(),
-      draggableProps: { ...params.draggableProps, ...this.draggableProps() },
       key: uuid(),
     };
 
     this.setState(
-      prev => ({ nodes: [...prev.nodes, <Node {...props} />] }),
+      prev => ({ nodes: [...prev.nodes, <NodeWithContextComponent {...props} />] }),
       () => document.dispatchEvent(this.saveSpaceModelEvent),
     );
   };
