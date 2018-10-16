@@ -45,7 +45,7 @@ class NodeComponent extends Component {
 
   componentDidMount() {
     this.node = findDOMNode(this);
-    this.props.spaceProps.createRef(this.state.id, this);
+    this.props.createNodeRef(this.state.id, this);
   }
 
   handleClick = () => this.setState({ selected: true });
@@ -56,11 +56,11 @@ class NodeComponent extends Component {
 
   onStart = (e, data) => {
     this.setState({ dragging: true });
-    this.props.draggableProps.onStart(e, { ...data, id: this.state.id });
+    this.props.draggableEvents.onStart(e, { ...data, id: this.state.id });
   };
 
   onDrag = (e, data) => {
-    this.props.draggableProps.onDrag(e, { ...data, id: this.state.id });
+    this.props.draggableEvents.onDrag(e, { ...data, id: this.state.id });
   };
 
   onStop = (e, data) => {
@@ -68,7 +68,7 @@ class NodeComponent extends Component {
 
     this.setState({ dragging: false, position: { x, y } });
 
-    this.props.draggableProps.onStop(e, { ...data, id: this.state.id });
+    this.props.draggableEvents.onStop(e, { ...data, id: this.state.id });
   };
 
   render() {
@@ -104,14 +104,14 @@ class NodeComponent extends Component {
             <NodeListInputs
               ref={this.inputsRef}
               inputs={this.props.inputs}
-              events={this.props.spaceProps.events.nodeInputs}
+              events={this.props.events.nodeInputs}
               nodeId={this.state.id}
               disabled={this.props.disabled}
             />
             <NodeListOutputsComponent
               ref={this.outputsRef}
               outputs={this.props.outputs}
-              events={this.props.spaceProps.events.nodeOutputs}
+              events={this.props.events.nodeOutputs}
               nodeId={this.state.id}
               disabled={this.props.disabled}
             />

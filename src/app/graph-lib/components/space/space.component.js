@@ -1,14 +1,21 @@
 import React, { Component } from 'react';
-import findIndex from 'lodash/findIndex';
 import remove from 'lodash/remove';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
-import { LineComponent } from '../line/line.component';
+import { LineWithContextComponent } from '../line/line-with-context.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
-import { Node } from '../node/node.component';
+import { NodeWithContextComponent } from '../node/node-with-context.component';
 
-import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
+import { createSpaceContext } from '../../contexts/space.context';
+
+import {
+  SAVE_SPACE_MODEL,
+  UPDATE_CONNECTIONS_EVENT,
+  MOUSE_MOVE,
+  MOUSE_UP,
+  LOCAL_STORAGE_SPACE_KEY,
+} from '../../dictionary';
 
 import styles from './space.module.scss';
 
@@ -26,17 +33,38 @@ export class GraphSpace extends Component {
       isContextMenuOpen: false,
     };
 
-    this.currentConnection = undefined;
-    this.nodeRefs = {};
-  }
-
-  componentDidMount() {
     this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
       detail: { calculateConnections: this.calculateConnections },
     });
 
     this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
 
+    this.currentConnection = undefined;
+    this.nodeRefs = {};
+
+    createSpaceContext({
+      events: {
+        nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
+        nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
+      },
+      actions: {
+        onNodeAdd: this.handleNodeAdd,
+        onNodeRemove: this.handleNodeRemove,
+      },
+      lineActions: {
+        onConnectionRemove: this.handleConnectionRemove,
+        onContextMenu: this.handleContextMenuState,
+      },
+      draggableEvents: {
+        onDrag: this.handleNodeDrag,
+        onStart: this.handleNodeDragStart,
+        onStop: this.handleNodeDragStop,
+      },
+      createNodeRef: (id, ref) => (this.nodeRefs[id] = ref),
+    });
+  }
+
+  componentDidMount() {
     document.addEventListener(MOUSE_MOVE, this.handleMouseMove);
     document.addEventListener(MOUSE_UP, this.handleMouseUp);
     document.addEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
@@ -51,35 +79,10 @@ export class GraphSpace extends Component {
     document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
   }
 
-  spaceProps = () => ({
-    events: {
-      nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
-      nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
-    },
-    createRef: (id, ref) => (this.nodeRefs[id] = ref),
-  });
-
-  draggableProps = () => ({
-    onDrag: this.onNodeDrag,
-    onStart: this.onNodeDragStart,
-    onStop: this.onNodeDragStop,
-  });
-
-  prepareNodes = nodes => {
-    return nodes.map(node => {
-      const props = {
-        ...node,
-        spaceProps: this.spaceProps(),
-        draggableProps: { ...node.draggableProps, ...this.draggableProps() },
-        key: node.id,
-      };
-
-      return <Node {...props} />;
-    });
-  };
+  prepareNodes = nodes => nodes.map(node => <NodeWithContextComponent {...node} key={node.id} />);
 
   handleSaveSpaceModel = () => {
-    localStorage.setItem('space', JSON.stringify(this.toJSON()));
+    localStorage.setItem(LOCAL_STORAGE_SPACE_KEY, JSON.stringify(this.toJSON()));
   };
 
   handleMouseUp = (e, params, callback) => {
@@ -173,13 +176,13 @@ export class GraphSpace extends Component {
     );
   };
 
-  onNodeDrag = (event, data, callback) => {};
+  handleNodeDrag = (event, data, callback) => {};
 
-  onNodeDragStart = (event, data, callback) => {
+  handleNodeDragStart = (event, data, callback) => {
     this.setState({ dragging: true });
   };
 
-  onNodeDragStop = (event, data, callback) => {
+  handleNodeDragStop = (event, data, callback) => {
     this.setState({ dragging: false });
 
     document.dispatchEvent(this.saveSpaceModelEvent);
@@ -192,7 +195,7 @@ export class GraphSpace extends Component {
       contextMenuParams: params,
     }));
 
-  handleConnectionDelete = (id, callback) => {
+  handleConnectionRemove = (id, callback) => {
     const connections = { ...this.state.connections };
     if (connections[id]) {
       delete connections[id];
@@ -216,7 +219,6 @@ export class GraphSpace extends Component {
   toJSON = () => {
     const nodes = this.state.nodes
       .map((node, index) => {
-        console.log(node);
         const props = node.props;
         const draggableProps = props.draggableProps;
 
@@ -252,7 +254,15 @@ export class GraphSpace extends Component {
         };
       })
       .map(
-        ({ eventTypes, excludeScrollbar, outsideClickIgnoreClass, preventDefault, stopPropagation, ...other }) => other,
+        ({
+          eventTypes,
+          excludeScrollbar,
+          outsideClickIgnoreClass,
+          preventDefault,
+          stopPropagation,
+          spaceProps,
+          ...other
+        }) => other,
       );
 
     const connections = this.state.connections;
@@ -260,21 +270,19 @@ export class GraphSpace extends Component {
     return { nodes, connections };
   };
 
-  addNode = (params = {}) => {
+  handleNodeAdd = (params = {}) => {
     const props = {
       ...params,
-      spaceProps: this.spaceProps(),
-      draggableProps: { ...params.draggableProps, ...this.draggableProps() },
       key: uuid(),
     };
 
     this.setState(
-      prev => ({ nodes: [...prev.nodes, <Node {...props} />] }),
+      prev => ({ nodes: [...prev.nodes, <NodeWithContextComponent {...props} />] }),
       () => document.dispatchEvent(this.saveSpaceModelEvent),
     );
   };
 
-  removeNode = id => {
+  handleNodeRemove = id => {
     const nodes = remove(this.state.nodes, item => item.props.id !== id);
 
     this.setState({ nodes }, () => document.dispatchEvent(this.saveSpaceModelEvent));
@@ -289,7 +297,7 @@ export class GraphSpace extends Component {
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
-      newLine = <LineComponent start={start} end={end} connecting />;
+      newLine = <LineWithContextComponent start={start} end={end} connecting />;
     }
 
     return (
@@ -305,16 +313,7 @@ export class GraphSpace extends Component {
           {this.state.showConnections &&
             Object.entries(this.state.connections).map(
               ([key, { start, end }]) =>
-                !!start && !!end ? (
-                  <LineComponent
-                    id={key}
-                    start={start}
-                    end={end}
-                    key={key}
-                    onConnectionDelete={this.handleConnectionDelete}
-                    onContextMenu={this.handleContextMenuState}
-                  />
-                ) : null,
+                !!start && !!end ? <LineWithContextComponent id={key} start={start} end={end} key={key} /> : null,
             )}
           {newLine}
         </SvgComopnent>
