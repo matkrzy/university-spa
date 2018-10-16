@@ -301,7 +301,7 @@ export class GraphSpace extends Component {
     }
 
     return (
-      <SpaceContext.Provider value={this.state.spaceContext}>
+      <SpaceContext.Provider value={this.spaceContext}>
         <section id="graphSpace" className={styles.space}>
           <ContextMenuComponent
             position={this.state.contextMenuPosition}
