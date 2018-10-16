@@ -3,13 +3,19 @@ import remove from 'lodash/remove';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
-import { LineComponent } from '../line/line.component';
+import { LineWithContextComponent } from '../line/line-with-context.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
 import { NodeWithContextComponent } from '../node/node-with-context.component';
 
 import { createSpaceContext } from '../../contexts/space.context';
 
-import { SAVE_SPACE_MODEL, UPDATE_CONNECTIONS_EVENT, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
+import {
+  SAVE_SPACE_MODEL,
+  UPDATE_CONNECTIONS_EVENT,
+  MOUSE_MOVE,
+  MOUSE_UP,
+  LOCAL_STORAGE_SPACE_KEY,
+} from '../../dictionary';
 
 import styles from './space.module.scss';
 
@@ -40,13 +46,19 @@ export class GraphSpace extends Component {
       events: {
         nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
         nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
-        addNode: this.addNode,
-        removeNode: this.removeNode,
+      },
+      actions: {
+        onNodeAdd: this.handleNodeAdd,
+        onNodeRemove: this.handleNodeRemove,
+      },
+      lineActions: {
+        onConnectionRemove: this.handleConnectionRemove,
+        onContextMenu: this.handleContextMenuState,
       },
       draggableEvents: {
-        onDrag: this.onNodeDrag,
-        onStart: this.onNodeDragStart,
-        onStop: this.onNodeDragStop,
+        onDrag: this.handleNodeDrag,
+        onStart: this.handleNodeDragStart,
+        onStop: this.handleNodeDragStop,
       },
       createNodeRef: (id, ref) => (this.nodeRefs[id] = ref),
     });
@@ -70,7 +82,7 @@ export class GraphSpace extends Component {
   prepareNodes = nodes => nodes.map(node => <NodeWithContextComponent {...node} key={node.id} />);
 
   handleSaveSpaceModel = () => {
-    localStorage.setItem('space', JSON.stringify(this.toJSON()));
+    localStorage.setItem(LOCAL_STORAGE_SPACE_KEY, JSON.stringify(this.toJSON()));
   };
 
   handleMouseUp = (e, params, callback) => {
@@ -164,13 +176,13 @@ export class GraphSpace extends Component {
     );
   };
 
-  onNodeDrag = (event, data, callback) => {};
+  handleNodeDrag = (event, data, callback) => {};
 
-  onNodeDragStart = (event, data, callback) => {
+  handleNodeDragStart = (event, data, callback) => {
     this.setState({ dragging: true });
   };
 
-  onNodeDragStop = (event, data, callback) => {
+  handleNodeDragStop = (event, data, callback) => {
     this.setState({ dragging: false });
 
     document.dispatchEvent(this.saveSpaceModelEvent);
@@ -183,7 +195,7 @@ export class GraphSpace extends Component {
       contextMenuParams: params,
     }));
 
-  handleConnectionDelete = (id, callback) => {
+  handleConnectionRemove = (id, callback) => {
     const connections = { ...this.state.connections };
     if (connections[id]) {
       delete connections[id];
@@ -258,7 +270,7 @@ export class GraphSpace extends Component {
     return { nodes, connections };
   };
 
-  addNode = (params = {}) => {
+  handleNodeAdd = (params = {}) => {
     const props = {
       ...params,
       key: uuid(),
@@ -270,7 +282,7 @@ export class GraphSpace extends Component {
     );
   };
 
-  removeNode = id => {
+  handleNodeRemove = id => {
     const nodes = remove(this.state.nodes, item => item.props.id !== id);
 
     this.setState({ nodes }, () => document.dispatchEvent(this.saveSpaceModelEvent));
@@ -285,7 +297,7 @@ export class GraphSpace extends Component {
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
-      newLine = <LineComponent start={start} end={end} connecting />;
+      newLine = <LineWithContextComponent start={start} end={end} connecting />;
     }
 
     return (
@@ -301,16 +313,7 @@ export class GraphSpace extends Component {
           {this.state.showConnections &&
             Object.entries(this.state.connections).map(
               ([key, { start, end }]) =>
-                !!start && !!end ? (
-                  <LineComponent
-                    id={key}
-                    start={start}
-                    end={end}
-                    key={key}
-                    onConnectionDelete={this.handleConnectionDelete}
-                    onContextMenu={this.handleContextMenuState}
-                  />
-                ) : null,
+                !!start && !!end ? <LineWithContextComponent id={key} start={start} end={end} key={key} /> : null,
             )}
           {newLine}
         </SvgComopnent>

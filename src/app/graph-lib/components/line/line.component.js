@@ -41,7 +41,7 @@ class ConnectionLine extends Component {
             onClick: () => {
               this.setState({ contextMenuOpen: false });
               this.props.onContextMenu(false);
-              this.props.onConnectionDelete(this.props.id);
+              this.props.onConnectionRemove(this.props.id);
             },
           },
         },
