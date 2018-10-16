@@ -7,7 +7,7 @@ import { LineWithContextComponent } from '../line/line-with-context.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
 import { NodeWithContextComponent } from '../node/node-with-context.component';
 
-import { createSpaceContext } from '../../contexts/space.context';
+import { SpaceContext } from '../../contexts/space.context';
 
 import {
   SAVE_SPACE_MODEL,
@@ -33,21 +33,12 @@ export class GraphSpace extends Component {
       isContextMenuOpen: false,
     };
 
-    this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
-      detail: { calculateConnections: this.calculateConnections },
-    });
-
-    this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
-
-    this.currentConnection = undefined;
-    this.nodeRefs = {};
-
-    createSpaceContext({
+    this.spaceContext = {
       events: {
         nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
         nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
       },
-      actions: {
+      spaceActions: {
         onNodeAdd: this.handleNodeAdd,
         onNodeRemove: this.handleNodeRemove,
       },
@@ -61,7 +52,16 @@ export class GraphSpace extends Component {
         onStop: this.handleNodeDragStop,
       },
       createNodeRef: (id, ref) => (this.nodeRefs[id] = ref),
+    };
+
+    this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
+      detail: { calculateConnections: this.calculateConnections },
     });
+
+    this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
+
+    this.currentConnection = undefined;
+    this.nodeRefs = {};
   }
 
   componentDidMount() {
@@ -301,23 +301,25 @@ export class GraphSpace extends Component {
     }
 
     return (
-      <section id="graphSpace" className={styles.space}>
-        <ContextMenuComponent
-          position={this.state.contextMenuPosition}
-          isOpen={this.state.isContextMenuOpen}
-          onContextMenu={this.handleContextMenuState}
-          {...this.state.contextMenuParams}
-        />
-        <NodesComponent>{this.state.nodes}</NodesComponent>
-        <SvgComopnent ref="svgComponent">
-          {this.state.showConnections &&
-            Object.entries(this.state.connections).map(
-              ([key, { start, end }]) =>
-                !!start && !!end ? <LineWithContextComponent id={key} start={start} end={end} key={key} /> : null,
-            )}
-          {newLine}
-        </SvgComopnent>
-      </section>
+      <SpaceContext.Provider value={this.state.spaceContext}>
+        <section id="graphSpace" className={styles.space}>
+          <ContextMenuComponent
+            position={this.state.contextMenuPosition}
+            isOpen={this.state.isContextMenuOpen}
+            onContextMenu={this.handleContextMenuState}
+            {...this.state.contextMenuParams}
+          />
+          <NodesComponent>{this.state.nodes}</NodesComponent>
+          <SvgComopnent ref="svgComponent">
+            {this.state.showConnections &&
+              Object.entries(this.state.connections).map(
+                ([key, { start, end }]) =>
+                  !!start && !!end ? <LineWithContextComponent id={key} start={start} end={end} key={key} /> : null,
+              )}
+            {newLine}
+          </SvgComopnent>
+        </section>
+      </SpaceContext.Provider>
     );
   }
 }
