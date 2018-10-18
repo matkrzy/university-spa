@@ -71,6 +71,35 @@ class NodeComponent extends Component {
     this.props.draggableEvents.onStop(e, { ...data, id: this.state.id });
   };
 
+  handleContextMenu = e => {
+    e.preventDefault();
+
+    const contextMenu = {
+      options: [
+        {
+          label: 'remove',
+          events: {
+            onClick: () => {
+              const params = {
+                inputs: this.getInputRefs().listRef,
+                outputs: this.getOutputsRef().listRef,
+                id: this.state.id,
+              };
+
+              this.props.spaceActions.onContextMenu(false);
+              this.props.spaceActions.onNodeRemove(params);
+            },
+          },
+        },
+      ],
+      onClose: () => this.setState({ contextMenuOpen: false }),
+    };
+
+    this.setState({ selected: true, contextMenuOpen: true }, () =>
+      this.props.spaceActions.onContextMenu(this.state.contextMenuOpen, contextMenu),
+    );
+  };
+
   render() {
     const nodeClassNames = classNames(styles.node, {
       [styles.selected]: this.state.selected,
@@ -98,7 +127,12 @@ class NodeComponent extends Component {
 
     return (
       <Draggable {...draggableProps} bounds={bounds} disabled={this.props.disabled}>
-        <div onDoubleClick={this.handleClick} className={nodeClassNames} id={this.state.id}>
+        <div
+          id={this.state.id}
+          className={nodeClassNames}
+          onDoubleClick={this.handleClick}
+          onContextMenu={this.handleContextMenu}
+        >
           <div className={headerClassNames}>{this.props.title}</div>
           <div className={styles.body}>
             <NodeListInputs

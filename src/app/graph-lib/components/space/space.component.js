@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import remove from 'lodash/remove';
+import findKey from 'lodash/findKey';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
@@ -41,8 +42,6 @@ export class GraphSpace extends Component {
       spaceActions: {
         onNodeAdd: this.handleNodeAdd,
         onNodeRemove: this.handleNodeRemove,
-      },
-      lineActions: {
         onConnectionRemove: this.handleConnectionRemove,
         onContextMenu: this.handleContextMenuState,
       },
@@ -230,16 +229,18 @@ export class GraphSpace extends Component {
         const position = ref.getPosition();
         const id = ref.getId();
 
+        console.log({ ref, componentOutputs, componentInputs, inputs, outputs });
+
         const newInputs = inputs.map((input, index) => {
           const id = componentInputs[index].getId();
 
           return { ...input, id };
         });
 
-        const newOutputs = outputs.map((input, index) => {
+        const newOutputs = outputs.map((output, index) => {
           const id = componentOutputs[index].getId();
 
-          return { ...input, id };
+          return { ...output, id };
         });
 
         return {
@@ -282,10 +283,23 @@ export class GraphSpace extends Component {
     );
   };
 
-  handleNodeRemove = id => {
-    const nodes = remove(this.state.nodes, item => item.props.id !== id);
+  handleNodeRemove = params => {
+    const { id, inputs, outputs } = params;
+    const nodes = remove([...this.state.nodes], item => item.props.id !== id);
+    const connections = { ...this.state.connections };
 
-    this.setState({ nodes }, () => document.dispatchEvent(this.saveSpaceModelEvent));
+    delete this.nodeRefs[id];
+
+    const removeConnectionByIOId = id => {
+      const result = findKey(connections, ({ start, end }) => start === id || end === id);
+
+      delete connections[result];
+    };
+
+    inputs.map(({ props: { id } }) => removeConnectionByIOId(id));
+    outputs.map(({ props: { id } }) => removeConnectionByIOId(id));
+
+    this.setState({ nodes, connections }, () => document.dispatchEvent(this.saveSpaceModelEvent));
   };
 
   render() {
