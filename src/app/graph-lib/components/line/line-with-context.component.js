@@ -7,7 +7,9 @@ export class LineWithContextComponent extends Component {
   render() {
     return (
       <SpaceContext.Consumer>
-        {({ lineActions }) => <LineComponent {...{ ...this.props, ...lineActions }} />}
+        {({ spaceActions: { onContextMenu, onConnectionRemove } }) => (
+          <LineComponent {...{ ...this.props, ...{ onContextMenu, onConnectionRemove } }} />
+        )}
       </SpaceContext.Consumer>
     );
   }

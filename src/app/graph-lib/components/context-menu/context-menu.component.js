@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { createPortal } from 'react-dom';
 import onClickOutside from 'react-onclickoutside';
 
 import { ContextMenuItemComponent } from './item/context-menu-item.component';
@@ -21,7 +22,7 @@ export class ContextMenu extends Component {
 
     const { x: left, y: top } = this.props.position;
 
-    return (
+    return createPortal(
       <div className={styles.wrapper} style={{ top, left }}>
         {this.props.title && <div className={styles.title}>{this.props.title}</div>}
         <div className={styles.body}>
@@ -29,7 +30,8 @@ export class ContextMenu extends Component {
             <ContextMenuItemComponent label={option.label} events={option.events} key={index} />
           ))}
         </div>
-      </div>
+      </div>,
+      document.getElementsByTagName('body')[0],
     );
   }
 }
