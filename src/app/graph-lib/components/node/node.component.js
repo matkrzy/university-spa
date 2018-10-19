@@ -39,7 +39,7 @@ class NodeComponent extends Component {
 
   getId = () => this.state.id;
 
-  getInputRefs = () => this.inputsRef.current;
+  getInputsRefs = () => this.inputsRef.current;
 
   getOutputsRef = () => this.outputsRef.current;
 
@@ -81,7 +81,7 @@ class NodeComponent extends Component {
           events: {
             onClick: () => {
               const params = {
-                inputs: this.getInputRefs().listRef,
+                inputs: this.getInputsRefs().listRef,
                 outputs: this.getOutputsRef().listRef,
                 id: this.state.id,
               };
