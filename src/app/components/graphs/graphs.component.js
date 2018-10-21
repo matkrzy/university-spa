@@ -1,6 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import { GraphSpace } from 'app/graph-lib';
+
+import { NodeEditModalComponent } from 'app/components/node/node-edit/modal/node-edit-modal.component';
 
 const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   nodes: [
@@ -66,6 +68,10 @@ export class GraphsComponent extends Component {
     this.space = React.createRef();
   }
 
+  handleNodeEdit = node => {
+    this.props.modalToggle('nodeEdit', { ...node, handleNodeUpdate: this.space.current.handleNodeUpdate });
+  };
+
   //
   //const test = resources: [
   //  {
@@ -91,6 +97,16 @@ export class GraphsComponent extends Component {
   render() {
     window.refs = this.space;
 
-    return <GraphSpace connections={defaultSpace.connections} nodes={defaultSpace.nodes} ref={this.space} />;
+    return (
+      <Fragment>
+        <GraphSpace
+          connections={defaultSpace.connections}
+          nodes={defaultSpace.nodes}
+          ref={this.space}
+          onNodeEdit={this.handleNodeEdit}
+        />
+        <NodeEditModalComponent />
+      </Fragment>
+    );
   }
 }

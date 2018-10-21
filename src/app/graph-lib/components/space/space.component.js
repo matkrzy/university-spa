@@ -39,7 +39,9 @@ export class GraphSpace extends Component {
       },
       spaceActions: {
         onNodeAdd: this.handleNodeAdd,
+        onNodeEdit: this.handleNodeEdit,
         onNodeRemove: this.handleNodeRemove,
+        onNodeUpdate: this.handleNodeUpdate,
         onConnectionRemove: this.handleConnectionRemove,
         onContextMenu: this.handleContextMenuState,
       },
@@ -220,8 +222,8 @@ export class GraphSpace extends Component {
         const draggableProps = props.draggableProps;
 
         const ref = Object.values(this.nodeRefs)[index];
-        const componentInputs = ref.getInputsRefs().listRef || [];
-        const componentOutputs = ref.getOutputsRef().listRef || [];
+        const componentInputs = ref.getInputsRefs().getListRef() || [];
+        const componentOutputs = ref.getOutputsRef().getListRef() || [];
         const inputs = props.inputs || [];
         const outputs = props.outputs || [];
         const position = ref.getPosition();
@@ -303,6 +305,34 @@ export class GraphSpace extends Component {
     outputs.map(({ props: { id } }) => removeConnectionByIOId(id));
 
     this.setState({ nodes, connections }, () => {
+      document.dispatchEvent(this.updateConnectionsEvent);
+      document.dispatchEvent(this.saveSpaceModelEvent);
+    });
+  };
+
+  handleNodeEdit = params => {
+    const { id } = params;
+    const node = this.nodeRefs[id];
+
+    this.props.onNodeEdit(node);
+  };
+
+  handleNodeUpdate = ({ id, inputs = [], outputs = [], ...params }) => {
+    const nodes = [...this.state.nodes];
+    const nodeIndex = nodes.findIndex(node => node.props.id === id);
+    const node = nodes[nodeIndex];
+
+    const props = {
+      ...params,
+      inputs: node.props.inputs.map((input, index) => ({ ...input, ...inputs[index] })),
+      outputs: node.props.outputs.map((output, index) => ({ ...output, ...outputs[index] })),
+    };
+
+    const newNode = React.cloneElement(node, props);
+
+    nodes[nodeIndex] = newNode;
+
+    this.setState({ nodes }, () => {
       document.dispatchEvent(this.updateConnectionsEvent);
       document.dispatchEvent(this.saveSpaceModelEvent);
     });

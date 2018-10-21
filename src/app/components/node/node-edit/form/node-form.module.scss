@@ -1,0 +1,9 @@
+.button {
+  &:nth-of-type(2n + 2) {
+    margin-left: 10px;
+  }
+}
+
+:global(.form-control).disabledField {
+  width: 150px;
+}

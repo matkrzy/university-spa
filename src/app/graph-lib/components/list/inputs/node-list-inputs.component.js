@@ -9,30 +9,31 @@ export class NodeListInputs extends Component {
   static defaultProps = {
     inputs: [],
     label: 'input',
-    disabled: false,
   };
 
   constructor(props) {
     super(props);
 
-    this.listRef = [];
+    this.listRef = {};
   }
 
-  addRef = ref => ref && this.listRef.push(ref);
+  getListRef = () => Object.values(this.listRef);
+
+  addRef = (id, ref) => (this.listRef[id] = ref);
 
   render() {
     return (
       <NodeList>
-        {this.props.inputs.map(({ label, id, maxConnections }, index) => (
+        {this.props.inputs.map(({ label, id, maxConnections, disabled }) => (
           <NodeListItem
             id={id}
             type={NODE_INPUT}
-            key={`${label}-${index}`}
-            ref={this.addRef}
+            key={id}
+            ref={ref => this.addRef(id, ref)}
             nodeId={this.props.nodeId}
             label={label || this.props.label}
-            maxConnections={maxConnections}
-            disabled={this.props.disabled}
+            maxConnections={maxConnections || 1}
+            disabled={disabled}
             {...this.props.events}
           />
         ))}

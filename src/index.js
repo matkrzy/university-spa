@@ -8,11 +8,11 @@ import createHistory from 'history/createBrowserHistory';
 import { AppComponent } from './app/app.component';
 import { devToolsEnhancer } from 'redux-devtools-extension/logOnlyInProduction';
 
-// const reducers = combineReducers({
-//   empty: (state = {}) => state,
-// });
+import { modalReducer as modals } from 'app/redux/modal/modal.reducer';
 
-const reducers = state => state;
+const reducers = combineReducers({
+  modals,
+});
 
 const history = createHistory();
 const middlewares = [routerMiddleware(history), thunkMiddleware];

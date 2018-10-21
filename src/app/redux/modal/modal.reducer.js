@@ -7,12 +7,17 @@ export const modalReducer = (state = {}, { type, payload }) => {
     case MODAL_REGISTER:
       return {
         ...state,
-        [payload]: false,
+        [payload]: {
+          isOpen: false,
+        },
       };
     case MODAL_TOGGLE:
       return {
         ...state,
-        [payload]: !state[payload],
+        [payload.id]: {
+          isOpen: !state[payload.id].isOpen,
+          params: !state[payload.id].isOpen ? payload.params : null,
+        },
       };
     case MODAL_DESTROY:
       return {
