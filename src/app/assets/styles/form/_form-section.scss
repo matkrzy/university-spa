@@ -1,0 +1,17 @@
+@import 'app/assets/styles/variables';
+
+.form-section {
+  padding: 5px;
+  margin: 20px 0;
+  background-color: $form-section-background;
+  border-radius: $border-radius;
+
+  & .form-section__title {
+    margin-bottom: 10px;
+    font-weight: 400;
+  }
+
+  & .form-section__body {
+    padding: 0 10px;
+  }
+}

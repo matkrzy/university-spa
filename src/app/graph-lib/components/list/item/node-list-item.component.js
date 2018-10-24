@@ -16,7 +16,6 @@ export class NodeListItem extends Component {
     this.state = {
       id: props.id || uuid(),
       connections: 0,
-      maxConnections: props.maxConnections || 1,
     };
   }
 
@@ -37,7 +36,7 @@ export class NodeListItem extends Component {
   };
 
   handleMouseDown = e => {
-    if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
+    if (this.state.connections >= this.props.maxConnections || this.props.disabled) {
       return null;
     }
 
@@ -45,7 +44,7 @@ export class NodeListItem extends Component {
   };
 
   handleMouseUp = e => {
-    if (this.state.connections >= this.state.maxConnections || this.props.disabled) {
+    if (this.state.connections >= this.props.maxConnections || this.props.disabled) {
       return null;
     }
 
@@ -54,7 +53,7 @@ export class NodeListItem extends Component {
 
   renderElement = () => {
     const indicatorClassNames = classNames(styles[this.props.type], styles.indicator, {
-      [styles.disabled]: this.state.connections >= this.state.maxConnections || this.props.disabled,
+      [styles.disabled]: this.state.connections >= this.props.maxConnections || this.props.disabled,
     });
 
     const itemClassNames = classNames(styles.item, styles[`item--${this.props.type}`]);
@@ -73,7 +72,7 @@ export class NodeListItem extends Component {
   };
 
   render() {
-    if (this.state.connections >= this.state.maxConnections) {
+    if (this.state.connections >= Number(this.props.maxConnections)) {
       return (
         <Tooltip
           placement={this.props.type === NODE_INPUT ? 'left' : 'right'}

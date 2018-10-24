@@ -91,6 +91,19 @@ class NodeComponent extends Component {
             },
           },
         },
+        {
+          label: 'edit',
+          events: {
+            onClick: () => {
+              const params = {
+                id: this.state.id,
+              };
+
+              this.props.spaceActions.onContextMenu(false);
+              this.props.spaceActions.onNodeEdit(params);
+            },
+          },
+        },
       ],
       onClose: () => this.setState({ contextMenuOpen: false }),
     };
@@ -140,14 +153,12 @@ class NodeComponent extends Component {
               inputs={this.props.inputs}
               events={this.props.events.nodeInputs}
               nodeId={this.state.id}
-              disabled={this.props.disabled}
             />
             <NodeListOutputsComponent
               ref={this.outputsRef}
               outputs={this.props.outputs}
               events={this.props.events.nodeOutputs}
               nodeId={this.state.id}
-              disabled={this.props.disabled}
             />
           </div>
         </div>
