@@ -44,6 +44,7 @@ export class GraphSpace extends Component {
         onNodeUpdate: this.handleNodeUpdate,
         onConnectionRemove: this.handleConnectionRemove,
         onContextMenu: this.handleContextMenuState,
+        onNodeDoubleClick: this.handleNodeDoubleClick,
       },
       draggableEvents: {
         onDrag: this.handleNodeDrag,
@@ -336,6 +337,10 @@ export class GraphSpace extends Component {
       document.dispatchEvent(this.updateConnectionsEvent);
       document.dispatchEvent(this.saveSpaceModelEvent);
     });
+  };
+
+  handleNodeDoubleClick = node => {
+    this.props.onNodeDoubleClick(node);
   };
 
   render() {

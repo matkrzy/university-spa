@@ -1,0 +1,17 @@
+.portLabel {
+  cursor: pointer;
+}
+
+.port {
+  margin: 5px 0;
+}
+
+.sectionTitle {
+  font-size: 18px;
+}
+
+:global {
+  .port-hovered-from-sidebar {
+    color: yellow;
+  }
+}

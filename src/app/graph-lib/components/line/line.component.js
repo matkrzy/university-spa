@@ -18,6 +18,7 @@ class ConnectionLine extends Component {
         buildTime: Math.floor(Math.random() * 10) + 4,
       },
       dotColor: this.getRandomColor(),
+      //lineColor: this.getRandomColor(),
     };
   }
 
@@ -135,6 +136,7 @@ class ConnectionLine extends Component {
           onClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
           onContextMenuCapture={this.handleContextMenu}
+          stroke={this.state.lineColor || undefined}
         />
         <path
           className={lineClickAreaClassNames}

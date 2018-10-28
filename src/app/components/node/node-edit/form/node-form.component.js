@@ -52,7 +52,7 @@ export class NodeEditForm extends Component {
                           name={`${name}.disabled`}
                           type="checkbox"
                           disabled={
-                            Number(values.inputs[index].connections) <= Number(values.inputs[index].maxConnections)
+                            Number(values.inputs[index].connections) === Number(values.inputs[index].maxConnections)
                           }
                         />
                       </div>
@@ -86,7 +86,7 @@ export class NodeEditForm extends Component {
                           name={`${name}.disabled`}
                           type="checkbox"
                           disabled={
-                            Number(values.outputs[index].connections) <= Number(values.outputs[index].maxConnections)
+                            Number(values.outputs[index].connections) === Number(values.outputs[index].maxConnections)
                           }
                         />
                       </div>

@@ -9,9 +9,11 @@ import { AppComponent } from './app/app.component';
 import { devToolsEnhancer } from 'redux-devtools-extension/logOnlyInProduction';
 
 import { modalReducer as modals } from 'app/redux/modal/modal.reducer';
+import { sidebarReducer as sidebars } from 'app/redux/sidebar/sidebar.reducer';
 
 const reducers = combineReducers({
   modals,
+  sidebars,
 });
 
 const history = createHistory();
