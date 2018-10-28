@@ -48,7 +48,10 @@ class NodeComponent extends Component {
     this.props.createNodeRef(this.state.id, this);
   }
 
-  handleClick = () => this.setState({ selected: true });
+  handleClick = () => {
+    this.setState({ selected: true });
+    this.props.spaceActions.onNodeDoubleClick(this);
+  };
 
   handleClickOutside() {
     this.setState({ selected: false });

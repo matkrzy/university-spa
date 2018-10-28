@@ -3,6 +3,8 @@ import React, { Component, Fragment } from 'react';
 import { GraphSpace } from 'app/graph-lib';
 
 import { NodeEditModalComponent } from 'app/components/node/node-edit/modal/node-edit-modal.component';
+import { SidebarContainer } from 'app/components/shared';
+import { NodeSidebarDetailsContainer } from 'app/components/node/node-sidebar-details/node-sidebar-details.container';
 
 const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   nodes: [
@@ -72,6 +74,10 @@ export class GraphsComponent extends Component {
     this.props.modalToggle('nodeEdit', { ...node, handleNodeUpdate: this.space.current.handleNodeUpdate });
   };
 
+  handleNodeDoubleClick = node => {
+    this.props.sidebarToggle('nodeDetails', { ...node, title: node.props.title });
+  };
+
   //
   //const test = resources: [
   //  {
@@ -99,11 +105,13 @@ export class GraphsComponent extends Component {
 
     return (
       <Fragment>
+        <SidebarContainer name="nodeDetails" component={NodeSidebarDetailsContainer} />
         <GraphSpace
           connections={defaultSpace.connections}
           nodes={defaultSpace.nodes}
           ref={this.space}
           onNodeEdit={this.handleNodeEdit}
+          onNodeDoubleClick={this.handleNodeDoubleClick}
         />
         <NodeEditModalComponent />
       </Fragment>

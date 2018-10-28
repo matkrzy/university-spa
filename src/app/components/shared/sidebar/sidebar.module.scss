@@ -1,0 +1,49 @@
+.sidebar {
+  position: absolute;
+  top: 0;
+  width: 400px;
+  background-color: #dadada;
+  z-index: 9999;
+  height: 100%;
+  overflow-y: auto;
+
+  &.left {
+    left: 0;
+  }
+
+  &.right {
+    right: 0;
+  }
+}
+
+.body {
+  padding: 10px;
+}
+
+.header {
+  padding: 0 10px;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.title {
+  font-weight: 400;
+}
+
+:global {
+  .sidebar__section {
+    margin: 10px 0;
+
+    .section__title {
+      font-weight: 400;
+      font-size: 16px;
+    }
+
+    .section__body {
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+  }
+}
