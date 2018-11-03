@@ -64,16 +64,27 @@ const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   },
 };
 
+/** Class representing a graph preview component
+ * @extends Component
+ */
 export class GraphsComponent extends Component {
   constructor(props) {
     super(props);
     this.space = React.createRef();
   }
 
+  /**
+   * Handler for node edition passed to `GraphSpace`. It will open modal to edit node details
+   * @param {NodeComponent} node
+   */
   handleNodeEdit = node => {
     this.props.modalToggle('nodeEdit', { ...node, handleNodeUpdate: this.space.current.handleNodeUpdate });
   };
 
+  /**
+   * Handler for node on click passed to `GraphSpace`. It will open sidebar with node details
+   * @param {NodeComponent} node
+   */
   handleNodeDoubleClick = node => {
     this.props.sidebarToggle('nodeDetails', { ...node, title: node.props.title });
   };

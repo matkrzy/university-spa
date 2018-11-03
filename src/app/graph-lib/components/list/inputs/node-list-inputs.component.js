@@ -5,21 +5,42 @@ import { NodeListItem } from '../item/node-list-item.component';
 
 import { NODE_INPUT } from '../../../dictionary';
 
+/** Class representing a `NodeListInputs`
+ * Render inputs of node
+ *
+ * @extends Component
+ */
 export class NodeListInputs extends Component {
   static defaultProps = {
     inputs: [],
     label: 'input',
   };
 
+  /**
+   * It will create `listRef` object
+   *
+   * @param props
+   */
   constructor(props) {
     super(props);
 
     this.listRef = {};
   }
 
+  /**
+   * It will returns object of refs
+   * @return {Object[]}
+   */
   getListRef = () => Object.values(this.listRef);
 
-  addRef = (id, ref) => (this.listRef[id] = ref);
+  /**
+   * It will add reference to references object
+   * @param {string} id - id of input
+   * @param {React.Node} ref - reference to component
+   */
+  addRef = (id, ref) => {
+    if (ref) this.listRef[id] = ref;
+  };
 
   render() {
     return (

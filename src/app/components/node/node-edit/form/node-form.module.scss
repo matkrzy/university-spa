@@ -7,3 +7,19 @@
 :global(.form-control).disabledField {
   width: 150px;
 }
+
+.removeField {
+  color: red;
+  height: 7px;
+  cursor: pointer;
+  margin-right: 7px;
+
+  &:global(.disabled) {
+    color: #495057;
+    cursor: auto;
+  }
+}
+
+.removeFieldTooltip {
+  z-index: 9999999;
+}

@@ -5,21 +5,42 @@ import { NodeListItem } from '../item/node-list-item.component';
 
 import { NODE_OUTPUT } from '../../../dictionary';
 
+/** Class representing a `NodeListOutputsComponent`
+ * Render outputs of node
+ *
+ * @extends Component
+ */
 export class NodeListOutputsComponent extends Component {
   static defaultProps = {
     outputs: [],
     label: 'output',
   };
 
+  /**
+   * It will create `listRef` object
+   *
+   * @param props
+   */
   constructor(props) {
     super(props);
 
     this.listRef = {};
   }
 
+  /**
+   * It will returns object of refs
+   * @return {Object[]}
+   */
   getListRef = () => Object.values(this.listRef);
 
-  addRef = (id, ref) => (this.listRef[id] = ref);
+  /**
+   * It will add reference to references object
+   * @param {string} id - id of output
+   * @param {React.Node} ref - reference to component
+   */
+  addRef = (id, ref) => {
+    if (ref) this.listRef[id] = ref;
+  };
 
   render() {
     return (

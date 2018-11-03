@@ -24,7 +24,7 @@ const mapStateToProps = (state, { params: node }) => {
       id,
     }));
 
-  return { inputs, outputs };
+  return { inputs, outputs, process: node.props.process };
 };
 
 const mapDispatchToProps = {};

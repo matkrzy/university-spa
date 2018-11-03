@@ -5,6 +5,9 @@ import { NodeEditContainer } from '../node-edit.container';
 
 import styles from './node-edit-modal.module.scss';
 
+/** Class representing a node edit modal
+ * @extends Component
+ */
 export class NodeEditModalComponent extends Component {
   render() {
     return (
