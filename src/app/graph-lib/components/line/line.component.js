@@ -6,7 +6,14 @@ import styles from './line.module.scss';
 
 const uuid = require('uuid/v4');
 
+/** Class representing a `ConnectionLineComponent`
+ * @extends Component
+ */
 class ConnectionLine extends Component {
+  /**
+   * Create default state of `ConnectionLine`
+   * @param props
+   */
   constructor(props) {
     super(props);
 
@@ -22,6 +29,10 @@ class ConnectionLine extends Component {
     };
   }
 
+  /**
+   * It will generate random color in hex for dots shows progress of process
+   * @return {string}
+   */
   getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -31,6 +42,10 @@ class ConnectionLine extends Component {
     return color;
   };
 
+  /**
+   * It creates context menu of `LineComponent`
+   * @param {Event} e
+   */
   handleContextMenu = e => {
     e.preventDefault();
 
@@ -55,24 +70,56 @@ class ConnectionLine extends Component {
     );
   };
 
+  /**
+   * Helper for getting position details by element id
+   * @param {string} id - id of node input or output
+   * @return {DOMRect} - properties of input or output selected by id
+   */
   getElementClientRect = id => {
     const element = document.getElementById(id);
 
     return !!element ? element.getBoundingClientRect() : {};
   };
 
+  /**
+   * It will set `selected` flag of `LineComponent`
+   * @param e
+   */
   handleClick = e => {
     this.setState({ selected: true });
   };
 
+  /**
+   * Helper for calculate connection path between output and input
+   * @param {number} a - `start.x` cord
+   * @param {number} b - `start.y` cord
+   * @param {number} cp1x - check point 1 x
+   * @param {number} cp1y - check point 1 y
+   * @param {number} cp2x - check point 2 x
+   * @param {number} cp2y - check point 2 y
+   * @param {number} x - `end.x` cord
+   * @param {number} y - `end.y` cord
+   * @return {string} path string
+   */
   bezierCurve(a, b, cp1x, cp1y, cp2x, cp2y, x, y) {
     return `M${a},${b} C${cp1x},${cp1y} ${cp2x},${cp2y}  ${x},${y}`;
   }
 
+  /**
+   * Helper for calculate distance between output and input
+   * @param {number[]} a - start cords
+   * @param {number[]} b - end cords
+   * @return {number} distance between points
+   */
   distance(a, b) {
     return Math.sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]));
   }
 
+  /**
+   * Handler for click outside of the component.
+   * It will set `selected` flag to false
+   * @param e
+   */
   handleClickOutside(e) {
     if (!this.state.contextMenuOpen) {
       this.setState({ selected: false });

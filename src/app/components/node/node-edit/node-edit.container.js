@@ -16,6 +16,7 @@ const mapStateToProps = ({ modals }, { modalName, toggle }) => {
       connections,
       disabled: disabled || connections >= maxConnections,
     }));
+
   const outputs = node
     .getOutputsRef()
     .getListRef()
@@ -41,15 +42,14 @@ const mapStateToProps = ({ modals }, { modalName, toggle }) => {
       id: node.getId(),
       inputs,
       outputs,
+      process: node.props.process,
     },
   };
 };
 
-const mapDispatchToProps = (dispatch, { handleNodeUpdate }) => ({});
-
 export const NodeEditContainer = compose(
   connect(
     mapStateToProps,
-    mapDispatchToProps,
+    null,
   ),
 )(NodeEditComponent);

@@ -42,7 +42,7 @@ export const SidebarComponent = onClickOutside(
             <div className={styles.header}>
               <div className={styles.title}>{title}</div>
               <div className={styles.close} onClick={this.props.toggle}>
-                x
+                <span role="img">✖</span>️
               </div>
             </div>
             <div className={styles.body}>

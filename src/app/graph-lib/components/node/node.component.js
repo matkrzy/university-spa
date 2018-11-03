@@ -11,6 +11,9 @@ import styles from './node.module.scss';
 
 const uuid = require('uuid/v4');
 
+/** Class representing a `NodeComponent`
+ * @extends Component
+ */
 class NodeComponent extends Component {
   static defaultProps = {
     inputs: [],
@@ -19,6 +22,10 @@ class NodeComponent extends Component {
     draggableProps: {},
   };
 
+  /**
+   * It will create state for `NodeComponent` and inputs and outputs ref
+   * @param props
+   */
   constructor(props) {
     super(props);
 
@@ -35,37 +42,95 @@ class NodeComponent extends Component {
     this.outputsRef = React.createRef();
   }
 
+  /**
+   * Getter for position of `NodeComponent`
+   * @return {draggableProps.defaultPosition|{x, y}|*}
+   */
   getPosition = () => this.state.position;
 
+  /**
+   * Getter for `NodeComponent` id
+   * @return {string} uuid of node
+   */
   getId = () => this.state.id;
 
+  /**
+   * Getter for `inputsRef`
+   * @return {Object}
+   */
   getInputsRefs = () => this.inputsRef.current;
 
+  /**
+   * Getter for `outputsRef`
+   * @return {null}
+   */
   getOutputsRef = () => this.outputsRef.current;
 
+  /**
+   * When component is mounted `node` is set by `findDOMNode(this)` and node is registered by `createNodeRef`
+   */
   componentDidMount() {
     this.node = findDOMNode(this);
     this.props.createNodeRef(this.state.id, this);
   }
 
+  /**
+   * Handler for click on node. It will set flag `selected` to true and call
+   * function under `spaceActions.onNodeDoubleClick`
+   */
   handleClick = () => {
     this.setState({ selected: true });
     this.props.spaceActions.onNodeDoubleClick(this);
   };
 
+  /**
+   * Handler for click outside of component. It will set flag `selected` to `false`
+   */
   handleClickOutside() {
     this.setState({ selected: false });
   }
 
+  /**
+   * Handler on drag start of `NodeComponent`. It will set flag `dragging` to true
+   * and call `draggableEvents.onStart` from `SpaceContext`
+   * @param e
+   * @param {DraggableData} data - data passed from `Draggable`
+   * @param {HTMLElement} data.node - dragged node element
+   * @param {number} data.x - x position of node
+   * @param {number} data.y - y position of node
+   * @param {number} data.deltaX - deltaX position of node
+   * @param {number} data.deltaY - deltaY position of node
+   */
   onStart = (e, data) => {
     this.setState({ dragging: true });
     this.props.draggableEvents.onStart(e, { ...data, id: this.state.id });
   };
 
+  /**
+   * Handler for on drag of `NodeComponent`. It will call `draggableEvents.onDrag` from `SpaceContext`
+   * @param e
+   * @param {DraggableData} data - data passed from `Draggable`
+   * @param {HTMLElement} data.node - dragged node element
+   * @param {number} data.x - x position of node
+   * @param {number} data.y - y position of node
+   * @param {number} data.deltaX - deltaX position of node
+   * @param {number} data.deltaY - deltaY position of node
+   */
   onDrag = (e, data) => {
     this.props.draggableEvents.onDrag(e, { ...data, id: this.state.id });
   };
 
+  /**
+   * Handler for on drag stop of `NodeComponent`. It set flag `dragging` to false and update `
+   * position` object in `state` also call `draggableEvents.onStop` from `SpaceContext`
+   * @param e
+   * @param {DraggableData} data - data passed from `Draggable`
+   * @param {HTMLElement} data.node - dragged node element
+   * @param {number} data.x - x position of node
+   * @param {number} data.y - y position of node
+   * @param {number} data.deltaX - deltaX position of node
+   * @param {number} data.deltaY - deltaY position of node
+   */
   onStop = (e, data) => {
     const { x, y } = data;
 
@@ -74,6 +139,10 @@ class NodeComponent extends Component {
     this.props.draggableEvents.onStop(e, { ...data, id: this.state.id });
   };
 
+  /**
+   * Handler for context menu. It will create context menu and open it
+   * @param e
+   */
   handleContextMenu = e => {
     e.preventDefault();
 

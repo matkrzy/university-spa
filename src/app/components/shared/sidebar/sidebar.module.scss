@@ -32,6 +32,10 @@
   font-weight: 400;
 }
 
+.close{
+  cursor: pointer;
+}
+
 :global {
   .sidebar__section {
     margin: 10px 0;

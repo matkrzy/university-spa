@@ -1,4 +1,7 @@
 export const validateMaxConnections = (index, key) => (value, values) => {
+  if (!values[key][index]) {
+    return undefined;
+  }
   const connections = Number(values[key][index].connections);
 
   if (!value) {
