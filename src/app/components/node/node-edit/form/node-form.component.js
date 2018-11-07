@@ -20,17 +20,18 @@ export class NodeEditForm extends Component {
       label: type.substring(0, type.length - 1),
       maxConnections: 1,
       connections: 0,
+      process: {},
     };
 
     push(type, input);
   };
 
-  disableInput = (values, index) => {
-    if (!values.inputs[index]) {
+  disableInput = (values, type, index) => {
+    if (!values[type][index]) {
       return false;
     }
 
-    return Number(values.inputs[index].connections) === Number(values.inputs[index].maxConnections);
+    return Number(values[type][index].connections) >= Number(values[type][index].maxConnections);
   };
 
   disableRemoveAction = (values, type, index) => values[type][index] && !!Number(values[type][index].connections);
@@ -94,7 +95,7 @@ export class NodeEditForm extends Component {
                             component={CheckboxComponent}
                             name={`${name}.disabled`}
                             type="checkbox"
-                            disabled={this.disableInput(values, index)}
+                            disabled={this.disableInput(values, 'inputs', index)}
                           />
                         </div>
                       ))
@@ -137,7 +138,7 @@ export class NodeEditForm extends Component {
                             component={CheckboxComponent}
                             name={`${name}.disabled`}
                             type="checkbox"
-                            disabled={this.disableInput(values, index)}
+                            disabled={this.disableInput(values, 'outputs', index)}
                           />
                         </div>
                       ))

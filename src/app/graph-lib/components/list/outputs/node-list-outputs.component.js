@@ -27,6 +27,12 @@ export class NodeListOutputsComponent extends Component {
     this.listRef = {};
   }
 
+  componentWillUpdate(nextProps) {
+    if (this.props.outputs.length !== nextProps.length) {
+      this.listRef = {};
+    }
+  }
+
   /**
    * It will returns object of refs
    * @return {Object[]}

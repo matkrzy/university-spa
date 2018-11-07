@@ -9,23 +9,23 @@ const mapStateToProps = ({ modals }, { modalName, toggle }) => {
   const inputs = node
     .getInputsRefs()
     .getListRef()
-    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
+    .map(({ props: { label, maxConnections = 1, id }, state: { connections, disabled } }) => ({
       label,
       maxConnections,
       id,
       connections,
-      disabled: disabled || connections >= maxConnections,
+      disabled,
     }));
 
   const outputs = node
     .getOutputsRef()
     .getListRef()
-    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
+    .map(({ props: { label, maxConnections = 1, id }, state: { connections, disabled } }) => ({
       label,
       maxConnections,
       id,
       connections,
-      disabled: disabled || connections >= maxConnections,
+      disabled,
     }));
 
   return {
