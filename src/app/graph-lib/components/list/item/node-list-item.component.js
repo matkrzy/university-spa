@@ -22,6 +22,7 @@ export class NodeListItem extends Component {
     this.state = {
       id: props.id || uuid(),
       connections: 0,
+      disabled: props.disabled || false,
     };
   }
 
@@ -32,6 +33,20 @@ export class NodeListItem extends Component {
     document.addEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
   }
 
+  componentDidUpdate(prevProps, prevState, prevContext) {
+    const disabled = this.state.connections >= this.props.maxConnections;
+    if (disabled !== this.state.disabled) {
+      this.setState({ disabled });
+    }
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (!!props.disabled && props.disabled === true && state.disabled !== props.disabled) {
+      return { disabled: props.disabled };
+    }
+
+    return null;
+  }
   /**
    * It will remove listeners when component will be unmount
    */

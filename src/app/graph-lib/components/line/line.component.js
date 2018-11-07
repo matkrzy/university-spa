@@ -10,6 +10,9 @@ const uuid = require('uuid/v4');
  * @extends Component
  */
 class ConnectionLine extends Component {
+  static defaultProps = {
+    animation: false,
+  };
   /**
    * Create default state of `ConnectionLine`
    * @param props
@@ -193,18 +196,19 @@ class ConnectionLine extends Component {
           id={progressPathId}
         />
 
-        {!this.props.connecting && (
-          <animateMotion
-            href={`#${progressCircleId}`}
-            dur={`${this.state.process.buildTime}s`}
-            begin="0s"
-            fill="freeze"
-            repeatCount="indefinite"
-            rotate="auto-reverse"
-          >
-            <mpath href={`#${progressPathId}`} />
-          </animateMotion>
-        )}
+        {!this.props.connecting &&
+          (this.props.animation && (
+            <animateMotion
+              href={`#${progressCircleId}`}
+              dur={`${this.state.process.buildTime}s`}
+              begin="0s"
+              fill="freeze"
+              repeatCount="indefinite"
+              rotate="auto-reverse"
+            >
+              <mpath href={`#${progressPathId}`} />
+            </animateMotion>
+          ))}
       </g>
     );
   }

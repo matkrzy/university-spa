@@ -32,8 +32,6 @@ class NodeComponent extends Component {
     this.state = {
       selected: false,
       id: props.id || uuid(),
-      connectedInputs: 0,
-      connectedOutput: 0,
       dragging: false,
       position: props.draggableProps.defaultPosition,
     };

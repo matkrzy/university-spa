@@ -4,12 +4,14 @@ import classNames from 'classnames';
 
 export class ButtonSvg extends Component {
   renderButton = () => {
+    const { disabled } = this.props;
+
     const buttonClassNames = classNames(this.props.className, {
-      disabled: this.props.disabled,
+      disabled: disabled,
     });
 
     return (
-      <span className={buttonClassNames} role="img" onClick={this.props.onClick}>
+      <span className={buttonClassNames} role="img" onClick={() => !disabled && this.props.onClick()}>
         {this.props.icon}
       </span>
     );
