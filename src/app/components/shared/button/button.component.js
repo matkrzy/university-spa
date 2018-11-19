@@ -5,15 +5,16 @@ import styles from './button.module.scss';
 
 export class Button extends Component {
   render() {
-    const { type = 'button' } = this.props;
+    const { type = 'button', onDoubleClick, disabled } = this.props;
+
     const buttonClassNames = classNames(styles.button, this.props.className, {
-      [styles.disabled]: this.props.disabled,
+      [styles.disabled]: disabled,
     });
 
-    const onClick = this.props.onClick ? this.props.onClick : null;
+    const onClick = this.props.onClick && !disabled ? this.props.onClick : null;
 
     return (
-      <button className={buttonClassNames} onClick={onClick} type={type}>
+      <button className={buttonClassNames} onClick={onClick} onDoubleClick={onDoubleClick} type={type}>
         {this.props.children}
       </button>
     );

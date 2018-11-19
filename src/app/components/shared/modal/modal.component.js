@@ -9,15 +9,11 @@ import styles from './modal.module.scss';
 const root = document.getElementById('root');
 
 export class ModalComponent extends Component {
-  constructor(props) {
-    super(props);
-
-    props.register(props.name);
-    console.log('registred');
+  componentDidMount() {
+    this.props.register(this.props.name);
   }
 
   componentWillUnmount() {
-    console.log('unmount');
     this.props.destroy(this.props.name);
   }
 

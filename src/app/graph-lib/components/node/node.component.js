@@ -3,23 +3,27 @@ import Draggable from 'react-draggable';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 import { findDOMNode } from 'react-dom';
+import { compose } from 'redux';
 
-import { NodeListInputs } from '../list/inputs/node-list-inputs.component';
+import { withNodeEvents, withNodeActions, withMarket } from 'app/graph-lib/contexts';
+
+import { NODE_TYPES } from '../../dictionary';
+import { NodeListInputsComponent } from '../list/inputs/node-list-inputs.component';
 import { NodeListOutputsComponent } from '../list/outputs/node-list-outputs.component';
+import { BuyButtonComponent, SellButtonComponent } from './types';
 
 import styles from './node.module.scss';
-
-const uuid = require('uuid/v4');
 
 /** Class representing a `NodeComponent`
  * @extends Component
  */
-class NodeComponent extends Component {
+class Node extends Component {
   static defaultProps = {
     inputs: [],
     outputs: [],
     title: 'Node',
     draggableProps: {},
+    type: NODE_TYPES.step,
   };
 
   /**
@@ -31,7 +35,8 @@ class NodeComponent extends Component {
 
     this.state = {
       selected: false,
-      id: props.id || uuid(),
+      connectedInputs: 0,
+      connectedOutput: 0,
       dragging: false,
       position: props.draggableProps.defaultPosition,
     };
@@ -50,7 +55,13 @@ class NodeComponent extends Component {
    * Getter for `NodeComponent` id
    * @return {string} uuid of node
    */
-  getId = () => this.state.id;
+  getId = () => this.props.id;
+
+  /**
+   * Getter for `NodeComponent` type
+   * @return {NODE_TYPES} node type
+   */
+  getType = () => this.props.type;
 
   /**
    * Getter for `inputsRef`
@@ -68,8 +79,12 @@ class NodeComponent extends Component {
    * When component is mounted `node` is set by `findDOMNode(this)` and node is registered by `createNodeRef`
    */
   componentDidMount() {
+    const {
+      nodeActions: { onCreateRef },
+    } = this.props;
+
     this.node = findDOMNode(this);
-    this.props.createNodeRef(this.state.id, this);
+    onCreateRef(this.props.id, this);
   }
 
   /**
@@ -77,8 +92,12 @@ class NodeComponent extends Component {
    * function under `spaceActions.onNodeDoubleClick`
    */
   handleClick = () => {
+    const {
+      nodeActions: { onDoubleClick },
+    } = this.props;
+
     this.setState({ selected: true });
-    this.props.spaceActions.onNodeDoubleClick(this);
+    onDoubleClick(this);
   };
 
   /**
@@ -100,8 +119,12 @@ class NodeComponent extends Component {
    * @param {number} data.deltaY - deltaY position of node
    */
   onStart = (e, data) => {
+    const {
+      nodeEvents: { onStart },
+    } = this.props;
+
     this.setState({ dragging: true });
-    this.props.draggableEvents.onStart(e, { ...data, id: this.state.id });
+    onStart(e, { ...data, id: this.props.id });
   };
 
   /**
@@ -115,7 +138,11 @@ class NodeComponent extends Component {
    * @param {number} data.deltaY - deltaY position of node
    */
   onDrag = (e, data) => {
-    this.props.draggableEvents.onDrag(e, { ...data, id: this.state.id });
+    const {
+      nodeEvents: { onDrag },
+    } = this.props;
+
+    onDrag(e, { ...data, id: this.props.id });
   };
 
   /**
@@ -130,11 +157,15 @@ class NodeComponent extends Component {
    * @param {number} data.deltaY - deltaY position of node
    */
   onStop = (e, data) => {
+    const {
+      nodeEvents: { onStop },
+    } = this.props;
+
     const { x, y } = data;
 
     this.setState({ dragging: false, position: { x, y } });
 
-    this.props.draggableEvents.onStop(e, { ...data, id: this.state.id });
+    onStop(e, { ...data, id: this.props.id });
   };
 
   /**
@@ -143,6 +174,10 @@ class NodeComponent extends Component {
    */
   handleContextMenu = e => {
     e.preventDefault();
+
+    const {
+      nodeActions: { onContextMenu, onRemove, onEdit },
+    } = this.props;
 
     const contextMenu = {
       options: [
@@ -153,11 +188,11 @@ class NodeComponent extends Component {
               const params = {
                 inputs: this.getInputsRefs().listRef,
                 outputs: this.getOutputsRef().listRef,
-                id: this.state.id,
+                id: this.props.id,
               };
 
-              this.props.spaceActions.onContextMenu(false);
-              this.props.spaceActions.onNodeRemove(params);
+              onContextMenu(false);
+              onRemove(params);
             },
           },
         },
@@ -166,11 +201,11 @@ class NodeComponent extends Component {
           events: {
             onClick: () => {
               const params = {
-                id: this.state.id,
+                id: this.props.id,
               };
 
-              this.props.spaceActions.onContextMenu(false);
-              this.props.spaceActions.onNodeEdit(params);
+              onContextMenu(false);
+              onEdit(params);
             },
           },
         },
@@ -179,11 +214,46 @@ class NodeComponent extends Component {
     };
 
     this.setState({ selected: true, contextMenuOpen: true }, () =>
-      this.props.spaceActions.onContextMenu(this.state.contextMenuOpen, contextMenu),
+      onContextMenu(this.state.contextMenuOpen, contextMenu),
     );
   };
 
+  transformProducts = () => {
+    const { products, state } = this.props.market;
+
+    return Object.entries(products).map(([key, { label }]) => ({
+      productId: key,
+      label: `${label} (${state[key]})`,
+      id: key,
+    }));
+  };
+
+  getInputs = () => {
+    const { type } = this.props;
+
+    if (type === NODE_TYPES.marketIn) {
+      return this.transformProducts();
+    }
+
+    return this.props.inputs;
+  };
+
+  getOutputs = () => {
+    const { type } = this.props;
+
+    if (type === NODE_TYPES.marketOut) {
+      return this.transformProducts();
+    }
+
+    return this.props.outputs;
+  };
+
   render() {
+    const { type } = this.props;
+
+    const inputs = this.getInputs();
+    const outputs = this.getOutputs();
+
     const nodeClassNames = classNames(styles.node, {
       [styles.selected]: this.state.selected,
       [styles.disabled]: this.props.disabled,
@@ -209,27 +279,22 @@ class NodeComponent extends Component {
     };
 
     return (
-      <Draggable {...draggableProps} bounds={bounds} disabled={this.props.disabled}>
+      <Draggable {...draggableProps} bounds={bounds} disabled={this.props.disabled} cancel=".form-control">
         <div
-          id={this.state.id}
+          id={this.props.id}
           className={nodeClassNames}
           onDoubleClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
         >
           <div className={headerClassNames}>{this.props.title}</div>
           <div className={styles.body}>
-            <NodeListInputs
-              ref={this.inputsRef}
-              inputs={this.props.inputs}
-              events={this.props.events.nodeInputs}
-              nodeId={this.state.id}
-            />
-            <NodeListOutputsComponent
-              ref={this.outputsRef}
-              outputs={this.props.outputs}
-              events={this.props.events.nodeOutputs}
-              nodeId={this.state.id}
-            />
+            <NodeListInputsComponent ref={this.inputsRef} inputs={inputs} nodeId={this.props.id} />
+
+            {type === NODE_TYPES.buy && <BuyButtonComponent inputs={this.getInputsRefs()} />}
+
+            {type === NODE_TYPES.sell && <SellButtonComponent outputs={this.getOutputsRef()} />}
+
+            <NodeListOutputsComponent ref={this.outputsRef} outputs={outputs} nodeId={this.props.id} />
           </div>
         </div>
       </Draggable>
@@ -237,4 +302,8 @@ class NodeComponent extends Component {
   }
 }
 
-export const Node = onClickOutside(NodeComponent);
+export const NodeComponent = compose(
+  withNodeEvents,
+  withNodeActions,
+  withMarket,
+)(onClickOutside(Node));

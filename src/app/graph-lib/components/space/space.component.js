@@ -2,19 +2,23 @@ import React, { Component } from 'react';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
-import { LineWithContextComponent } from '../line/line-with-context.component';
+import { LineComponent } from '../line/line.component';
 import { ContextMenuComponent } from '../context-menu/context-menu.component';
-import { NodeWithContextComponent } from '../node/node-with-context.component';
-
-import { SpaceContext } from '../../contexts/space.context';
+import { NodeComponent } from '../node/node.component';
 
 import {
-  SAVE_SPACE_MODEL,
-  UPDATE_CONNECTIONS_EVENT,
-  MOUSE_MOVE,
-  MOUSE_UP,
-  LOCAL_STORAGE_SPACE_KEY,
-} from '../../dictionary';
+  MarketContext,
+  MarketActionsContext,
+  CurrentConnectionContext,
+  PortsEventsContext,
+  NodeActionsContext,
+  NodeEventsContext,
+  ConnectionLineActionsContext,
+} from 'app/graph-lib/contexts';
+
+import { SAVE_SPACE_MODEL, MOUSE_MOVE, MOUSE_UP, LOCAL_STORAGE_SPACE_KEY } from '../../dictionary';
+
+import { saveSpaceModelEvent, updateConnectionsEvent } from '../../events';
 
 import styles from './space.module.scss';
 
@@ -29,10 +33,15 @@ export class GraphSpace extends Component {
    *
    * @param {Object} props - props of component
    * @param {ConnectionLine[]} props.connections - array connections of nodes
-   * @param {Node[]} props.nodes - array of nodes
+   * @param {NodeComponent[]} props.nodes - array of nodes
    */
   constructor(props) {
     super(props);
+
+    //if (process.env.NODE_ENV !== 'production') {
+    //  const { whyDidYouUpdate } = require('why-did-you-update');
+    //  whyDidYouUpdate(React);
+    //}
 
     this.state = {
       connections: { ...props.connections },
@@ -42,33 +51,40 @@ export class GraphSpace extends Component {
       isContextMenuOpen: false,
     };
 
-    this.spaceContext = {
-      events: {
-        nodeOutputs: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
-        nodeInputs: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
-      },
-      spaceActions: {
-        onNodeAdd: this.handleNodeAdd,
-        onNodeEdit: this.handleNodeEdit,
-        onNodeRemove: this.handleNodeRemove,
-        onNodeUpdate: this.handleNodeUpdate,
-        onConnectionRemove: this.handleConnectionRemove,
-        onContextMenu: this.handleContextMenuState,
-        onNodeDoubleClick: this.handleNodeDoubleClick,
-      },
-      draggableEvents: {
-        onDrag: this.handleNodeDrag,
-        onStart: this.handleNodeDragStart,
-        onStop: this.handleNodeDragStop,
-      },
-      createNodeRef: (id, ref) => (this.nodeRefs[id] = ref),
+    this.portsEvents = {
+      output: { onMouseDown: this.handleOutputMouseDown, onMouseUp: this.handleOutputMouseUp },
+      input: { onMouseDown: this.handleInputMouseDown, onMouseUp: this.handleInputMouseUp },
     };
 
-    this.updateConnectionsEvent = new CustomEvent(UPDATE_CONNECTIONS_EVENT, {
-      detail: { calculateConnections: this.calculateConnections },
-    });
+    this.nodesActions = {
+      onAdd: this.handleNodeAdd,
+      onConnectionRemove: this.handleConnectionRemove,
+      onContextMenu: this.handleContextMenuState,
+      onDoubleClick: this.handleNodeDoubleClick,
+      onEdit: this.handleNodeEdit,
+      onRemove: this.handleNodeRemove,
+      onUpdate: this.handleNodeUpdate,
+      onCreateRef: this.handleNodeRef,
+    };
 
-    this.saveSpaceModelEvent = new Event(SAVE_SPACE_MODEL);
+    this.connectionLineActions = {
+      onConnectionRemove: this.handleConnectionRemove,
+      onContextMenu: this.handleContextMenuState,
+    };
+
+    this.nodeEvents = {
+      onDrag: this.handleNodeDrag,
+      onStart: this.handleNodeDragStart,
+      onStop: this.handleNodeDragStop,
+    };
+
+    this.marketActions = {
+      onItemBuy: this.props.onItemBuy,
+    };
+
+    this.updateConnectionsEvent = updateConnectionsEvent(this.calculateConnections);
+
+    this.saveSpaceModelEvent = saveSpaceModelEvent;
 
     this.currentConnection = undefined;
     this.nodeRefs = {};
@@ -103,14 +119,16 @@ export class GraphSpace extends Component {
    * @param {NodeComponent[]} nodes - list of nodes read from saved model
    * @return {*}
    */
-  prepareNodes = nodes => nodes.map(node => <NodeWithContextComponent {...node} key={node.id} />);
+  prepareNodes = nodes => nodes.map(node => <NodeComponent {...node} key={node.id} />);
 
   /**
    * Allow to save `GraphSpace` model to local storage as `JSON` string
    */
   handleSaveSpaceModel = () => {
-    localStorage.setItem(LOCAL_STORAGE_SPACE_KEY, JSON.stringify(this.toJSON()));
+    setTimeout(() => localStorage.setItem(LOCAL_STORAGE_SPACE_KEY, JSON.stringify(this.toJSON())), 500);
   };
+
+  handleNodeRef = (id, ref) => (this.nodeRefs[id] = ref);
 
   /**
    * Handler for mouse up event when connection is created. It will remove temporary `ConnectionLine`
@@ -166,7 +184,7 @@ export class GraphSpace extends Component {
 
     this.currentConnection = uuid();
 
-    const { id } = params;
+    const { id, nodeId, productId } = params;
 
     this.setState(
       prev => ({
@@ -175,10 +193,13 @@ export class GraphSpace extends Component {
           ...prev.connections,
           [this.currentConnection]: {
             start: id,
+            startNode: nodeId,
+            productId,
           },
         },
       }),
       () => {
+        callback(this.currentConnection);
         document.dispatchEvent(this.updateConnectionsEvent);
       },
     );
@@ -227,7 +248,7 @@ export class GraphSpace extends Component {
 
     const connection = this.state.connections[this.currentConnection];
 
-    const { id } = params;
+    const { id, nodeId } = params;
 
     this.setState(
       prev => ({
@@ -236,10 +257,12 @@ export class GraphSpace extends Component {
           [this.currentConnection]: {
             ...connection,
             end: id,
+            endNode: nodeId,
           },
         },
       }),
       () => {
+        callback(this.currentConnection);
         this.currentConnection = undefined;
 
         document.dispatchEvent(this.updateConnectionsEvent);
@@ -322,15 +345,22 @@ export class GraphSpace extends Component {
    *
    */
   handleConnectionRemove = (id, callback) => {
-    const connections = { ...this.state.connections };
+    this.setState(this.removeConnection(id), () => {
+      !!callback && callback();
+
+      document.dispatchEvent(this.updateConnectionsEvent);
+      document.dispatchEvent(this.saveSpaceModelEvent);
+    });
+  };
+
+  removeConnection = id => state => {
+    const connections = { ...state.connections };
+
     if (connections[id]) {
       delete connections[id];
     }
 
-    this.setState({ connections }, () => {
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModelEvent);
-    });
+    return { connections };
   };
 
   /**
@@ -369,22 +399,30 @@ export class GraphSpace extends Component {
         const outputs = props.outputs || [];
         const position = ref.getPosition();
         const id = ref.getId();
+        const type = ref.getType();
 
         const newInputs = inputs.map((input, index) => {
-          const id = componentInputs[index].getId();
+          const item = componentInputs[index];
+          const id = item.getId();
+          const connectionId = item.getConnectionId();
+          const connections = item.getConnections();
 
-          return { ...input, id };
+          return { ...input, id, connectionId, connections };
         });
 
         const newOutputs = outputs.map((output, index) => {
-          const id = componentOutputs[index].getId();
+          const item = componentOutputs[index];
+          const id = item.getId();
+          const connectionId = item.getConnectionId();
+          const connections = item.getConnections();
 
-          return { ...output, id };
+          return { ...output, id, connectionId, connections };
         });
 
         return {
           ...props,
           id,
+          type,
           inputs: newInputs,
           outputs: newOutputs,
           draggableProps: {
@@ -433,7 +471,7 @@ export class GraphSpace extends Component {
     };
 
     this.setState(
-      prev => ({ nodes: [...prev.nodes, <NodeWithContextComponent {...props} />] }),
+      prev => ({ nodes: [...prev.nodes, <NodeComponent {...props} />] }),
       () => document.dispatchEvent(this.saveSpaceModelEvent),
     );
   };
@@ -500,13 +538,13 @@ export class GraphSpace extends Component {
     inputs = inputs.map((input, index) => {
       const oldInput = node.props.inputs[index] || {};
 
-      return { ...input, oldInput };
+      return { ...oldInput, ...input };
     });
 
     outputs = outputs.map((output, index) => {
       const oldOutput = node.props.outputs[index] || {};
 
-      return { ...output, oldOutput };
+      return { ...oldOutput, ...output };
     });
 
     const props = {
@@ -541,36 +579,57 @@ export class GraphSpace extends Component {
       document.dispatchEvent(this.saveSpaceModelEvent);
     });
 
+  getConnectionById = connectionId => {
+    return this.state.connections[connectionId];
+  };
+
   render() {
+    const currentConnectionContext = this.currentConnection
+      ? this.getConnectionById(this.currentConnection)
+      : undefined;
+
     let newLine = null;
+
     if (this.state.connecting) {
       let start = this.state.connections[this.currentConnection].start;
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
-      newLine = <LineWithContextComponent start={start} end={end} connecting />;
+      newLine = <LineComponent start={start} end={end} connecting />;
     }
 
     return (
-      <SpaceContext.Provider value={this.spaceContext}>
-        <section id="graphSpace" className={styles.space}>
-          <ContextMenuComponent
-            position={this.state.contextMenuPosition}
-            isOpen={this.state.isContextMenuOpen}
-            onContextMenu={this.handleContextMenuState}
-            {...this.state.contextMenuParams}
-          />
-          <NodesComponent>{this.state.nodes}</NodesComponent>
-          <SvgComopnent ref="svgComponent">
-            {this.state.showConnections &&
-              Object.entries(this.state.connections).map(
-                ([key, { start, end }]) =>
-                  !!start && !!end ? <LineWithContextComponent id={key} start={start} end={end} key={key} /> : null,
-              )}
-            {newLine}
-          </SvgComopnent>
-        </section>
-      </SpaceContext.Provider>
+      <NodeEventsContext.Provider value={this.nodeEvents}>
+        <NodeActionsContext.Provider value={this.nodesActions}>
+          <PortsEventsContext.Provider value={this.portsEvents}>
+            <MarketContext.Provider value={this.props.market}>
+              <MarketActionsContext.Provider value={this.marketActions}>
+                <CurrentConnectionContext.Provider value={currentConnectionContext}>
+                  <ConnectionLineActionsContext.Provider value={this.connectionLineActions}>
+                    <section id="graphSpace" className={styles.space}>
+                      <ContextMenuComponent
+                        position={this.state.contextMenuPosition}
+                        isOpen={this.state.isContextMenuOpen}
+                        onContextMenu={this.handleContextMenuState}
+                        {...this.state.contextMenuParams}
+                      />
+                      <NodesComponent>{this.state.nodes}</NodesComponent>
+                      <SvgComopnent ref="svgComponent">
+                        {this.state.showConnections &&
+                          Object.entries(this.state.connections).map(
+                            ([key, { start, end }]) =>
+                              !!start && !!end ? <LineComponent id={key} start={start} end={end} key={key} /> : null,
+                          )}
+                        {newLine}
+                      </SvgComopnent>
+                    </section>
+                  </ConnectionLineActionsContext.Provider>
+                </CurrentConnectionContext.Provider>
+              </MarketActionsContext.Provider>
+            </MarketContext.Provider>
+          </PortsEventsContext.Provider>
+        </NodeActionsContext.Provider>
+      </NodeEventsContext.Provider>
     );
   }
 }

@@ -6,11 +6,15 @@ import { sidebarToggle } from 'app/redux/sidebar/sidebar.actions';
 
 import { GraphsComponent } from './graphs.component';
 
-const mapStateToProps = state => ({});
+import { fetchMarket, requestMarketGoods } from 'app/redux/market/market.actions';
+
+const mapStateToProps = ({ market: { data } }) => ({ market: data, loading: !data });
 
 const mapDispatchToProps = {
   modalToggle,
   sidebarToggle,
+  requestMarketGoods,
+  fetchMarket,
 };
 
 export const GraphsContainer = compose(

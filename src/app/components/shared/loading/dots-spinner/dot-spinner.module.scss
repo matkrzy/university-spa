@@ -1,0 +1,17 @@
+.wrapper {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #fff;
+  position: absolute;
+  align-items: center;
+  z-index: 99999999999;
+  flex-direction: column;
+  justify-content: center;
+  
+  & > span {
+    margin: 10px 0;
+  }
+}
