@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { NodeList } from '../node-list.component';
-import { NodeListItem } from '../item/node-list-item.component';
+import { NodeListItemComponent } from '../item/node-list-item.component';
 
 import { NODE_INPUT } from '../../../dictionary';
 
@@ -10,7 +10,7 @@ import { NODE_INPUT } from '../../../dictionary';
  *
  * @extends Component
  */
-export class NodeListInputs extends Component {
+export class NodeListInputsComponent extends Component {
   static defaultProps = {
     inputs: [],
     label: 'input',
@@ -51,8 +51,8 @@ export class NodeListInputs extends Component {
   render() {
     return (
       <NodeList>
-        {this.props.inputs.map(({ label, id, maxConnections, disabled }) => (
-          <NodeListItem
+        {this.props.inputs.map(({ label, id, maxConnections, disabled, productId, connectionId }) => (
+          <NodeListItemComponent
             id={id}
             type={NODE_INPUT}
             key={id}
@@ -61,7 +61,8 @@ export class NodeListInputs extends Component {
             label={label || this.props.label}
             maxConnections={maxConnections || 1}
             disabled={disabled}
-            {...this.props.events}
+            connectionId={connectionId}
+            productId={productId}
           />
         ))}
       </NodeList>

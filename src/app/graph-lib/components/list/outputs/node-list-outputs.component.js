@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { NodeList } from '../node-list.component';
-import { NodeListItem } from '../item/node-list-item.component';
+import { NodeListItemComponent } from '../item/node-list-item.component';
 
 import { NODE_OUTPUT } from '../../../dictionary';
 
@@ -51,8 +51,8 @@ export class NodeListOutputsComponent extends Component {
   render() {
     return (
       <NodeList>
-        {this.props.outputs.map(({ label, id, maxConnections, disabled }) => (
-          <NodeListItem
+        {this.props.outputs.map(({ label, id, maxConnections, disabled, productId, connectionId }) => (
+          <NodeListItemComponent
             id={id}
             type={NODE_OUTPUT}
             key={id}
@@ -60,8 +60,9 @@ export class NodeListOutputsComponent extends Component {
             nodeId={this.props.nodeId}
             label={label || this.props.label}
             maxConnections={maxConnections || 1}
+            productId={productId}
             disabled={disabled}
-            {...this.props.events}
+            connectionId={connectionId}
           />
         ))}
       </NodeList>

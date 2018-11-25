@@ -1,17 +1,18 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
 import Tooltip from 'rc-tooltip';
+import { compose } from 'redux';
+
+import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph-lib/contexts';
 
 import { NODE_INPUT, UPDATE_CONNECTIONS_EVENT } from '../../../dictionary';
 
 import styles from './node-list-item.module.scss';
 
-const uuid = require('uuid/v4');
-
 /** Class representing a `NodeListItem`
  * @extends Component
  */
-export class NodeListItem extends Component {
+class NodeListItem extends Component {
   /**
    * It will set up default state of `NodeListItem`
    * @param props
@@ -19,11 +20,7 @@ export class NodeListItem extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      id: props.id || uuid(),
-      connections: 0,
-      disabled: props.disabled || false,
-    };
+    this.state = { connections: 0, connectionId: props.connectionId };
   }
 
   /**
@@ -34,19 +31,15 @@ export class NodeListItem extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, prevContext) {
-    const disabled = this.state.connections >= this.props.maxConnections;
-    if (disabled !== this.state.disabled) {
-      this.setState({ disabled });
+    if (this.state.connectionId && prevProps.productId !== this.props.productId) {
+      const {
+        nodeActions: { onConnectionRemove },
+      } = this.props;
+
+      onConnectionRemove(this.state.connectionId, () => this.setState({ connectionId: undefined }));
     }
   }
 
-  static getDerivedStateFromProps(props, state) {
-    if (!!props.disabled && props.disabled === true && state.disabled !== props.disabled) {
-      return { disabled: props.disabled };
-    }
-
-    return null;
-  }
   /**
    * It will remove listeners when component will be unmount
    */
@@ -58,16 +51,20 @@ export class NodeListItem extends Component {
    * Getter of item id
    * @return {string} uuid of `NodeListItem`
    */
-  getId = () => this.state.id;
+  getId = () => this.props.id;
+
+  getConnectionId = () => this.state.connectionId;
+
+  getConnections = () => this.state.connections;
+
+  getProductId = () => this.props.productId;
 
   /**
    * Helper for calculation connections for specific node based on node ID and type of item
    * @param {updateConnectionEvent} e - custom update connection event created in `GraphSpace`
    */
   calculateConnections = e => {
-    this.setState({
-      connections: e.detail.calculateConnections(this.state.id, this.props.type),
-    });
+    this.setState({ connections: e.detail.calculateConnections(this.props.id, this.props.type) });
   };
 
   /**
@@ -78,11 +75,16 @@ export class NodeListItem extends Component {
    * @return {null}
    */
   handleMouseDown = e => {
+    const { portsEvents, type } = this.props;
+    const { onMouseDown } = portsEvents[type];
+
     if (this.state.connections >= this.props.maxConnections || this.props.disabled) {
       return null;
     }
 
-    this.props.onMouseDown(e, { id: this.state.id, nodeId: this.props.nodeId });
+    onMouseDown(e, { id: this.props.id, nodeId: this.props.nodeId, productId: this.props.productId }, connectionId =>
+      this.setState({ connectionId }),
+    );
   };
 
   /**
@@ -93,11 +95,21 @@ export class NodeListItem extends Component {
    * @return {null}
    */
   handleMouseUp = e => {
-    if (this.state.connections >= this.props.maxConnections || this.props.disabled) {
+    const isCompatible =
+      this.props.currentConnection &&
+      this.props.currentConnection.productId &&
+      this.props.currentConnection.productId === this.props.productId;
+
+    if (this.state.connections >= this.props.maxConnections || this.props.disabled || !isCompatible) {
       return null;
     }
 
-    this.props.onMouseUp(e, { id: this.state.id, nodeId: this.props.nodeId });
+    const { portsEvents, type } = this.props;
+    const { onMouseUp } = portsEvents[type];
+
+    onMouseUp(e, { id: this.props.id, nodeId: this.props.nodeId, productId: this.props.productId }, connectionId =>
+      this.setState({ connectionId }),
+    );
   };
 
   /**
@@ -106,7 +118,10 @@ export class NodeListItem extends Component {
    */
   renderElement = () => {
     const indicatorClassNames = classNames(styles[this.props.type], styles.indicator, {
-      [styles.disabled]: this.state.connections >= this.props.maxConnections || this.props.disabled,
+      [styles.disabled]:
+        this.state.connections >= this.props.maxConnections ||
+        this.props.disabled ||
+        (this.props.currentConnection && this.props.currentConnection.productId !== this.props.productId),
     });
 
     const itemClassNames = classNames(styles.item, styles[`item--${this.props.type}`]);
@@ -117,7 +132,9 @@ export class NodeListItem extends Component {
           className={indicatorClassNames}
           onMouseDown={this.handleMouseDown}
           onMouseUp={this.handleMouseUp}
-          id={this.state.id}
+          id={this.props.id}
+          data-id={this.props.id}
+          data-type={this.props.type}
         />
         <span className={styles.label}>{this.props.label}</span>
       </li>
@@ -130,7 +147,19 @@ export class NodeListItem extends Component {
         <Tooltip
           placement={this.props.type === NODE_INPUT ? 'left' : 'right'}
           overlay="Maximum connections reached"
-          overlayClassName={styles.tooltip}
+          overlayClassName="tooltip"
+        >
+          {this.renderElement()}
+        </Tooltip>
+      );
+    }
+
+    if (this.props.currentConnection && this.props.currentConnection.productId !== this.props.productId) {
+      return (
+        <Tooltip
+          placement={this.props.type === NODE_INPUT ? 'left' : 'right'}
+          overlay="Product doesn't match to input"
+          overlayClassName="tooltip"
         >
           {this.renderElement()}
         </Tooltip>
@@ -140,3 +169,9 @@ export class NodeListItem extends Component {
     return this.renderElement();
   }
 }
+
+export const NodeListItemComponent = compose(
+  withNodeActions,
+  withCurrentConnection,
+  withPortEvents,
+)(NodeListItem);

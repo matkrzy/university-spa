@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 
+import { withConnectionLineActions } from 'app/graph-lib/contexts';
+import { NODE_INPUT, NODE_OUTPUT } from 'app/graph-lib/dictionary';
+
 import styles from './line.module.scss';
 
 const uuid = require('uuid/v4');
@@ -10,9 +13,9 @@ const uuid = require('uuid/v4');
  * @extends Component
  */
 class ConnectionLine extends Component {
-  static defaultProps = {
-    animation: false,
-  };
+  progressCircleId = uuid();
+  progressPathId = uuid();
+
   /**
    * Create default state of `ConnectionLine`
    * @param props
@@ -52,6 +55,10 @@ class ConnectionLine extends Component {
   handleContextMenu = e => {
     e.preventDefault();
 
+    const {
+      connectionLineActions: { onContextMenu, onConnectionRemove },
+    } = this.props;
+
     const contextMenu = {
       options: [
         {
@@ -59,8 +66,8 @@ class ConnectionLine extends Component {
           events: {
             onClick: () => {
               this.setState({ contextMenuOpen: false });
-              this.props.onContextMenu(false);
-              this.props.onConnectionRemove(this.props.id);
+              onContextMenu(false);
+              onConnectionRemove(this.props.id);
             },
           },
         },
@@ -69,17 +76,20 @@ class ConnectionLine extends Component {
     };
 
     this.setState({ selected: true, contextMenuOpen: true }, () =>
-      this.props.onContextMenu(this.state.contextMenuOpen, contextMenu),
+      onContextMenu(this.state.contextMenuOpen, contextMenu),
     );
   };
 
   /**
    * Helper for getting position details by element id
-   * @param {string} id - id of node input or output
+   * @param {string} type - key to select start | end
    * @return {DOMRect} - properties of input or output selected by id
    */
-  getElementClientRect = id => {
-    const element = document.getElementById(id);
+  getElementClientRect = type => {
+    const id = this.props[type];
+    const IO = type === 'start' ? NODE_OUTPUT : NODE_INPUT;
+
+    const element = document.querySelectorAll(`[data-id='${id}'][data-type='${IO}']`)[0];
 
     return !!element ? element.getBoundingClientRect() : {};
   };
@@ -134,9 +144,8 @@ class ConnectionLine extends Component {
   }
 
   render() {
-    const startRect =
-      typeof this.props.start === 'string' ? this.getElementClientRect(this.props.start) : this.props.start;
-    const endRect = typeof this.props.end === 'string' ? this.getElementClientRect(this.props.end) : this.props.end;
+    const startRect = typeof this.props.start === 'string' ? this.getElementClientRect('start') : this.props.start;
+    const endRect = typeof this.props.end === 'string' ? this.getElementClientRect('end') : this.props.end;
 
     if (!startRect || !endRect) {
       console.error('One line is skipped');
@@ -172,12 +181,9 @@ class ConnectionLine extends Component {
 
     const lineClickAreaClassNames = classNames(styles.lineClickArea, {});
 
-    const progressCircleId = uuid();
-    const progressPathId = uuid();
-
     return (
       <g>
-        <circle r="5" fill={this.state.dotColor} id={progressCircleId} />
+        <circle r="5" fill={this.state.dotColor} id={this.progressCircleId} />
         <circle cx={start.x} cy={start.y} r="3" fill="#337ab7" />
         <circle cx={end.x} cy={end.y} r="3" fill="#9191A8" />
         <path
@@ -193,25 +199,24 @@ class ConnectionLine extends Component {
           d={pathString}
           onClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
-          id={progressPathId}
+          id={this.progressPathId}
         />
 
-        {!this.props.connecting &&
-          (this.props.animation && (
-            <animateMotion
-              href={`#${progressCircleId}`}
-              dur={`${this.state.process.buildTime}s`}
-              begin="0s"
-              fill="freeze"
-              repeatCount="indefinite"
-              rotate="auto-reverse"
-            >
-              <mpath href={`#${progressPathId}`} />
-            </animateMotion>
-          ))}
+        {!this.props.connecting && (
+          <animateMotion
+            href={`#${this.progressCircleId}`}
+            dur={`${this.state.process.buildTime}s`}
+            begin="0s"
+            fill="freeze"
+            repeatCount="indefinite"
+            rotate="auto-reverse"
+          >
+            <mpath href={`#${this.progressPathId}`} />
+          </animateMotion>
+        )}
       </g>
     );
   }
 }
 
-export const LineComponent = onClickOutside(ConnectionLine);
+export const LineComponent = withConnectionLineActions(onClickOutside(ConnectionLine));

@@ -3,29 +3,31 @@ import { compose } from 'redux';
 
 import { NodeEditComponent } from './node-edit.component';
 
-const mapStateToProps = ({ modals }, { modalName, toggle }) => {
+const mapStateToProps = ({ modals, market: { data } }, { modalName, toggle }) => {
   const node = modals[modalName].params;
 
   const inputs = node
     .getInputsRefs()
     .getListRef()
-    .map(({ props: { label, maxConnections = 1, id }, state: { connections, disabled } }) => ({
+    .map(({ props: { label, maxConnections = 1, id, disabled, productId }, state: { connections } }) => ({
       label,
       maxConnections,
       id,
       connections,
       disabled,
+      productId,
     }));
 
   const outputs = node
     .getOutputsRef()
     .getListRef()
-    .map(({ props: { label, maxConnections = 1, id }, state: { connections, disabled } }) => ({
+    .map(({ props: { label, maxConnections = 1, id, disabled, productId }, state: { connections } }) => ({
       label,
       maxConnections,
       id,
       connections,
       disabled,
+      productId,
     }));
 
   return {
@@ -44,6 +46,8 @@ const mapStateToProps = ({ modals }, { modalName, toggle }) => {
       outputs,
       process: node.props.process,
     },
+    type: node.getType(),
+    products: Object.entries(data.products).map(([id, { label }]) => ({ id, label })),
   };
 };
 

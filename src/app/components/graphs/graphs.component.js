@@ -3,64 +3,69 @@ import React, { Component, Fragment } from 'react';
 import { GraphSpace } from 'app/graph-lib';
 
 import { NodeEditModalComponent } from 'app/components/node/node-edit/modal/node-edit-modal.component';
-import { SidebarContainer } from 'app/components/shared';
+import { SidebarContainer, DotSpinnerComponent } from 'app/components/shared';
 import { NodeSidebarDetailsContainer } from 'app/components/node/node-sidebar-details/node-sidebar-details.container';
 
 const defaultSpace = JSON.parse(localStorage.getItem('space')) || {
   nodes: [
     {
-      id: '2bbb00fd-07bf-41d5-bdc1-31af0e8d03f9',
-      title: 'Source of metal',
-      draggableProps: { defaultPosition: { x: 200, y: 300 } },
-      outputs: [{ label: 'o', id: 'output1', maxConnections: 3 }, { id: 'output2' }],
+      id: 'd3fa6165-5106-4ce2-8719-846b2f6e04f3',
+      type: 'marketOut',
+      process: {},
       inputs: [],
+      outputs: [],
+      draggableProps: { defaultPosition: { x: 65, y: 175 } },
     },
     {
-      id: 'a49f7dc6-538d-4395-9586-8e654e6b68c6',
-      title: 'Cutting machine',
-      draggableProps: { defaultPosition: { x: 790, y: 137 } },
+      id: 'add2d48a-eceb-4de6-8745-5285b4bcdc3e',
+      type: 'buy',
       inputs: [
-        { label: 'i', id: 'maczeta' },
-        { id: '8266ed7d-f302-41df-81f4-0c5c4df2c85a' },
-        { id: 'd4a58a6c-b19c-4aa0-9ef9-a01431676fbd' },
+        {
+          id: 'eb63878b-c217-430c-b0d3-1ebe792cbf17',
+          label: 'input',
+          maxConnections: 1,
+          connections: 1,
+          productId: '9c6beb83-c8f8-4dab-af15-732a4df81cfc',
+        },
       ],
       outputs: [
-        { label: 'i', id: 'f220ad90-2c43-428e-96e4-34deecbaf052' },
-        { id: 'f45200c6-53b3-4c06-b1a6-380de6c0bfef' },
+        {
+          id: '25b25770-eb14-4c66-ad75-7d658ba1357d',
+          label: 'output',
+          maxConnections: 1,
+          connections: 1,
+          productId: '9c6beb83-c8f8-4dab-af15-732a4df81cfc',
+          connectionId: '58b5e3b9-8f70-412c-bb18-a7e35355a953',
+        },
       ],
+      process: {},
+      draggableProps: { defaultPosition: { x: 652, y: 23 } },
+      title: 'Node',
     },
     {
-      id: 'c2aceb7b-a776-47f2-b118-4a6ff9b432e0',
-      title: 'Soldering machine',
-      draggableProps: { defaultPosition: { x: 777, y: 425 } },
-      inputs: [
-        { label: 'i', id: 'input1' },
-        { id: '0081820c-180a-4b3b-b69e-b4a17ecd7430' },
-        { id: '13888b8c-066a-4a0d-a98c-f3e34a361177' },
-      ],
-      outputs: [
-        { label: 'i', id: 'd6489e2c-c305-4f2f-813a-56ba30b3d2d2' },
-        { id: 'fe5093d3-1e38-4394-ad75-d7fca939e1ce' },
-      ],
-    },
-    {
-      id: '13e7ecbf-4901-49f8-809a-7031c35e1489',
-      draggableProps: { defaultPosition: { x: 100, y: 50 } },
-      inputs: [
-        { label: 'i', id: 'f52e29c9-2bbe-4fff-adaa-d0aa2f4388bc' },
-        { id: '2d5e1de8-5f10-4a45-976c-7f26ef9c7835' },
-        { id: 'f9165359-26b4-4d90-9e9e-620ae14dab7a' },
-      ],
-      outputs: [
-        { label: 'i', id: 'a991ed08-fa21-4505-a1d1-049ba63b394f' },
-        { id: '7c322f0f-a5f3-489e-82f1-e379e9c5d91a' },
-      ],
+      id: '267f6c9a-06f5-41d4-84d7-d5968cf94818',
+      type: 'marketIn',
+      process: {},
+      inputs: [],
+      outputs: [],
+      draggableProps: { defaultPosition: { x: 1197, y: 123 } },
     },
   ],
   connections: {
-    '869a2a9d-1175-4033-b8df-5573a0367e33': { start: 'output1', end: 'maczeta' },
-    'faa6c924-67b7-4814-b5f8-729641cbd4dd': { start: 'output2', end: 'input1' },
-    '761dd3b4-0a66-4279-a331-2b6bc64cf95f': { start: 'output1', end: '13888b8c-066a-4a0d-a98c-f3e34a361177' },
+    'aa11f3e0-13e2-4956-b229-5a62886665c9': {
+      start: '407d4deb-ce38-45f8-9aa5-34adfd75b36f',
+      startNode: 'd3fa6165-5106-4ce2-8719-846b2f6e04f3',
+      productId: '407d4deb-ce38-45f8-9aa5-34adfd75b36f',
+      end: 'eb63878b-c217-430c-b0d3-1ebe792cbf17',
+      endNode: 'add2d48a-eceb-4de6-8745-5285b4bcdc3e',
+    },
+    '58b5e3b9-8f70-412c-bb18-a7e35355a953': {
+      start: '25b25770-eb14-4c66-ad75-7d658ba1357d',
+      startNode: 'add2d48a-eceb-4de6-8745-5285b4bcdc3e',
+      productId: '9c6beb83-c8f8-4dab-af15-732a4df81cfc',
+      end: '9c6beb83-c8f8-4dab-af15-732a4df81cfc',
+      endNode: '267f6c9a-06f5-41d4-84d7-d5968cf94818',
+    },
   },
 };
 
@@ -71,6 +76,10 @@ export class GraphsComponent extends Component {
   constructor(props) {
     super(props);
     this.space = React.createRef();
+  }
+
+  componentDidMount() {
+    this.props.fetchMarket();
   }
 
   /**
@@ -112,7 +121,7 @@ export class GraphsComponent extends Component {
   //  ]
 
   render() {
-    window.refs = this.space;
+    if (this.props.loading) return <DotSpinnerComponent />;
 
     return (
       <Fragment>
@@ -120,9 +129,11 @@ export class GraphsComponent extends Component {
         <GraphSpace
           connections={defaultSpace.connections}
           nodes={defaultSpace.nodes}
+          market={this.props.market}
           ref={this.space}
           onNodeEdit={this.handleNodeEdit}
           onNodeDoubleClick={this.handleNodeDoubleClick}
+          onItemBuy={this.props.requestMarketGoods}
         />
         <NodeEditModalComponent />
       </Fragment>

@@ -10,10 +10,12 @@ import { devToolsEnhancer } from 'redux-devtools-extension/logOnlyInProduction';
 
 import { modalReducer as modals } from 'app/redux/modal/modal.reducer';
 import { sidebarReducer as sidebars } from 'app/redux/sidebar/sidebar.reducer';
+import { marketReducer as market } from 'app/redux/market/market.reducer';
 
 const reducers = combineReducers({
   modals,
   sidebars,
+  market,
 });
 
 const history = createHistory();
