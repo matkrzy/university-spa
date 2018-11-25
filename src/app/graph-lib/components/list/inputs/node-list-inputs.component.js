@@ -28,7 +28,7 @@ export class NodeListInputsComponent extends Component {
   }
 
   componentWillUpdate(nextProps) {
-    if (this.props.inputs.length !== nextProps.length) {
+    if (this.props.inputs.length !== nextProps.inputs.length) {
       this.listRef = {};
     }
   }
@@ -53,16 +53,16 @@ export class NodeListInputsComponent extends Component {
       <NodeList>
         {this.props.inputs.map(({ label, id, maxConnections, disabled, productId, connectionId }) => (
           <NodeListItemComponent
+            connectionId={connectionId}
+            disabled={disabled}
             id={id}
-            type={NODE_INPUT}
             key={id}
-            ref={ref => this.addRef(id, ref)}
-            nodeId={this.props.nodeId}
             label={label || this.props.label}
             maxConnections={maxConnections || 1}
-            disabled={disabled}
-            connectionId={connectionId}
+            nodeId={this.props.nodeId}
             productId={productId}
+            ref={ref => this.addRef(id, ref)}
+            type={NODE_INPUT}
           />
         ))}
       </NodeList>

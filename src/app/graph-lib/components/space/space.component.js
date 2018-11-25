@@ -393,7 +393,7 @@ export class GraphSpace extends Component {
         const draggableProps = props.draggableProps;
 
         const ref = Object.values(this.nodeRefs)[index];
-        const componentInputs = ref.getInputsRefs().getListRef() || [];
+        const componentInputs = ref.getInputsRef().getListRef() || [];
         const componentOutputs = ref.getOutputsRef().getListRef() || [];
         const inputs = props.inputs || [];
         const outputs = props.outputs || [];

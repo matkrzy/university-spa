@@ -67,7 +67,7 @@ class Node extends Component {
    * Getter for `inputsRef`
    * @return {Object}
    */
-  getInputsRefs = () => this.inputsRef.current;
+  getInputsRef = () => this.inputsRef.current;
 
   /**
    * Getter for `outputsRef`
@@ -186,7 +186,7 @@ class Node extends Component {
           events: {
             onClick: () => {
               const params = {
-                inputs: this.getInputsRefs().listRef,
+                inputs: this.getInputsRef().listRef,
                 outputs: this.getOutputsRef().listRef,
                 id: this.props.id,
               };
@@ -290,7 +290,7 @@ class Node extends Component {
           <div className={styles.body}>
             <NodeListInputsComponent ref={this.inputsRef} inputs={inputs} nodeId={this.props.id} />
 
-            {type === NODE_TYPES.buy && <BuyButtonComponent inputs={this.getInputsRefs()} />}
+            {type === NODE_TYPES.buy && <BuyButtonComponent inputs={this.getInputsRef()} />}
 
             {type === NODE_TYPES.sell && <SellButtonComponent outputs={this.getOutputsRef()} />}
 
