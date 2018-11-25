@@ -7,7 +7,7 @@ const mapStateToProps = ({ modals, market: { data } }, { modalName, toggle }) =>
   const node = modals[modalName].params;
 
   const inputs = node
-    .getInputsRefs()
+    .getInputsRef()
     .getListRef()
     .map(({ props: { label, maxConnections = 1, id, disabled, productId }, state: { connections } }) => ({
       label,
