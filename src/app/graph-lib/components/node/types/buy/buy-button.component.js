@@ -3,9 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
+import { compose } from 'redux';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarketActions } from 'app/graph-lib/contexts';
+import { withMarketActions, withMarket } from 'app/graph-lib/contexts';
 
 import styles from './buy-button.module.scss';
 
@@ -38,10 +39,18 @@ export class BuyButton extends Component {
     this.formRef.current.form.reset();
   };
 
+  checkProductState = id => {
+    const {
+      market: { state },
+    } = this.props;
+
+    return !!state[id];
+  };
+
   canBuy = () => {
     const input = this.props.inputs?.getListRef()[0];
 
-    return !!input?.getConnections();
+    return !!input?.getConnections() && this.checkProductState(this.getProductId());
   };
 
   render() {
@@ -68,4 +77,7 @@ export class BuyButton extends Component {
   }
 }
 
-export const BuyButtonComponent = withMarketActions(BuyButton);
+export const BuyButtonComponent = compose(
+  withMarketActions,
+  withMarket,
+)(BuyButton);
