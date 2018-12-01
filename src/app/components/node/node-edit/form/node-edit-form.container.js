@@ -1,9 +1,10 @@
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 
-import { NodeEditComponent } from './node-edit.component';
+import { NodeEditForm } from './node-edit-form.component';
+import { modalToggle } from 'app/redux/modal/modal.actions';
 
-const mapStateToProps = ({ modals, market: { data } }, { modalName, toggle }) => {
+const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle }) => {
   const node = modals[modalName].params;
 
   const inputs = node
@@ -47,13 +48,20 @@ const mapStateToProps = ({ modals, market: { data } }, { modalName, toggle }) =>
       process: node.props.process,
     },
     type: node.getType(),
-    products: Object.entries(data.products).map(([id, { label }]) => ({ id, label })),
+    products: Object.values({ ...market.data, ...marketLocal.data }).map(({ label, id }) => ({
+      id,
+      label,
+    })),
   };
 };
 
-export const NodeEditContainer = compose(
+const mapDispatchToProps = {
+  modalToggle,
+};
+
+export const NodeEditFormContainer = compose(
   connect(
     mapStateToProps,
-    null,
+    mapDispatchToProps,
   ),
-)(NodeEditComponent);
+)(NodeEditForm);

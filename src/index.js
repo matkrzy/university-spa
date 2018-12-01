@@ -7,19 +7,41 @@ import { ConnectedRouter, routerMiddleware } from 'react-router-redux';
 import createHistory from 'history/createBrowserHistory';
 import { AppComponent } from './app/app.component';
 import { devToolsEnhancer } from 'redux-devtools-extension/logOnlyInProduction';
+import { apiMiddleware } from 'redux-api-middleware';
+
+import { endpointMiddleware } from 'app/middlewares/endpoint/endpoint.middleware';
+import { bodyMiddleware } from 'app/middlewares/body/body.middleware';
+import { errorsMiddleware } from 'app/middlewares/errors/errors.middleware';
 
 import { modalReducer as modals } from 'app/redux/modal/modal.reducer';
 import { sidebarReducer as sidebars } from 'app/redux/sidebar/sidebar.reducer';
-import { marketReducer as market } from 'app/redux/market/market.reducer';
+import { marketGlobalReducer as market } from 'app/redux/market-global/market-global.reducer';
+import { marketLocalReducer as marketLocal } from 'app/redux/market-local/market-local.reducer';
+import { processesReducer as processes } from 'app/redux/processes/processes.reducer';
+import { processReducer as process } from 'app/redux/process/process.reducer';
+import { notificationsReducer as notifications } from 'app/redux/notifications/notifications.reducer';
 
 const reducers = combineReducers({
   modals,
   sidebars,
   market,
+  marketLocal,
+  processes,
+  process,
+  notifications,
 });
 
 const history = createHistory();
-const middlewares = [routerMiddleware(history), thunkMiddleware];
+
+const middlewares = [
+  routerMiddleware(history),
+  thunkMiddleware,
+  bodyMiddleware,
+  endpointMiddleware,
+  apiMiddleware,
+  errorsMiddleware,
+];
+
 const store = createStore(
   reducers,
   compose(

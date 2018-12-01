@@ -3,6 +3,9 @@ import { Form, Field } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import { FieldArray } from 'react-final-form-arrays';
 import createDecorator from 'final-form-calculate';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import Tooltip from 'rc-tooltip';
 
 import {
   TextFieldComponent,
@@ -17,7 +20,7 @@ import { validateMaxConnections } from 'app/utils/validators';
 
 import { NODE_TYPES } from 'app/graph-lib';
 
-import styles from './node-form.module.scss';
+import styles from './node-edit-form.module.scss';
 
 const uuid = require('uuid/v4');
 
@@ -52,6 +55,14 @@ export class NodeEditForm extends Component {
       'outputs[0].productId': value => value,
     },
   });
+
+  addLocalProductButton = (
+    <Button onClick={() => this.props.modalToggle('addLocalProduct')}>
+      <Tooltip placement="bottom" overlayClassName="tooltip" overlay="Add new local product">
+        <FontAwesomeIcon icon={faPlus} />
+      </Tooltip>
+    </Button>
+  );
 
   render() {
     const { type } = this.props;
@@ -111,13 +122,16 @@ export class NodeEditForm extends Component {
                               specializedProps={{ min: 1, max: type === NODE_TYPES.buy ? 1 : 5, step: 1 }}
                               asyncErrors
                             />
-                            {(type === NODE_TYPES.buy || type === NODE_TYPES.sell) && (
-                              <Field
-                                label="Product"
-                                component={SelectFieldComponent}
-                                name={`${name}.productId`}
-                                options={this.props.products}
-                              />
+                            {(type === NODE_TYPES.buy || type === NODE_TYPES.sell || type === NODE_TYPES.step) && (
+                              <>
+                                <Field
+                                  label="Product"
+                                  component={SelectFieldComponent}
+                                  name={`${name}.productId`}
+                                  options={this.props.products}
+                                />
+                                {type === NODE_TYPES.step && this.addLocalProductButton}
+                              </>
                             )}
                             <Field
                               className={styles.disabledField}
@@ -179,13 +193,16 @@ export class NodeEditForm extends Component {
                                 disabled={true}
                               />
                             ) : (
-                              <Field
-                                label="Product"
-                                component={SelectFieldComponent}
-                                name={`${name}.productId`}
-                                options={this.props.products}
-                                value={values?.inputs[index]?.productId}
-                              />
+                              <>
+                                <Field
+                                  label="Product"
+                                  component={SelectFieldComponent}
+                                  name={`${name}.productId`}
+                                  options={this.props.products}
+                                  value={values?.inputs[index]?.productId}
+                                />
+                                {this.addLocalProductButton}
+                              </>
                             )}
                             <Field
                               className={styles.disabledField}

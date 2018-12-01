@@ -5,11 +5,12 @@ import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarketActions } from 'app/graph-lib/contexts';
+
+import { marketUpdateGoods } from 'app/socket/market/actions';
 
 import styles from './sell-button.module.scss';
 
-class SellButton extends Component {
+export class SellButtonComponent extends Component {
   constructor(props) {
     super(props);
 
@@ -17,14 +18,15 @@ class SellButton extends Component {
   }
 
   onSubmit = ({ amount }) => {
-    const { onItemBuy } = this.props.marketActions;
-
     if (!this.canSell()) {
       return;
     }
 
     const productId = this.getProductId();
-    onItemBuy({ amount, productId });
+    const payload = { amount, productId };
+    marketUpdateGoods({
+      payload,
+    });
 
     this.formRef.current.form.reset();
   };
@@ -61,4 +63,4 @@ class SellButton extends Component {
   }
 }
 
-export const SellButtonComponent = withMarketActions(SellButton);
+//export const SellButtonComponent = withMarketActions(SellButton);
