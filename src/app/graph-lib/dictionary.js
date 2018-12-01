@@ -12,7 +12,6 @@ export const MOUSE_MOVE = 'mousemove';
 export const MOUSE_UP = 'mouseup';
 
 //**KEYS**//
-export const LOCAL_STORAGE_SPACE_KEY = 'space';
 
 export const NODE_TYPES = {
   marketOut: 'marketOut',

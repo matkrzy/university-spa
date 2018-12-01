@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import debounce from 'lodash/debounce';
 
 import { SvgComopnent } from './svg/svg.component';
 import { NodesComponent } from './nodes/nodes.component';
@@ -16,7 +17,7 @@ import {
   ConnectionLineActionsContext,
 } from 'app/graph-lib/contexts';
 
-import { SAVE_SPACE_MODEL, MOUSE_MOVE, MOUSE_UP, LOCAL_STORAGE_SPACE_KEY } from '../../dictionary';
+import { SAVE_SPACE_MODEL, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
 
 import { saveSpaceModelEvent, updateConnectionsEvent } from '../../events';
 
@@ -79,7 +80,7 @@ export class GraphSpace extends Component {
     };
 
     this.marketActions = {
-      onItemBuy: this.props.onItemBuy,
+      //onItemBuy: this.props.onItemBuy,
     };
 
     this.updateConnectionsEvent = updateConnectionsEvent(this.calculateConnections);
@@ -96,9 +97,10 @@ export class GraphSpace extends Component {
    * When component is mounted it will set up listeners, update connections and set flag to display connections
    */
   componentDidMount() {
+    //debounce(onChange.bind(this, dispatch), 500),
     document.addEventListener(MOUSE_MOVE, this.handleMouseMove);
     document.addEventListener(MOUSE_UP, this.handleMouseUp);
-    document.addEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
+    document.addEventListener(SAVE_SPACE_MODEL, debounce(this.handleSaveSpaceModel, 500));
 
     document.dispatchEvent(this.updateConnectionsEvent);
     this.setState({ showConnections: true });
@@ -125,7 +127,14 @@ export class GraphSpace extends Component {
    * Allow to save `GraphSpace` model to local storage as `JSON` string
    */
   handleSaveSpaceModel = () => {
-    setTimeout(() => localStorage.setItem(LOCAL_STORAGE_SPACE_KEY, JSON.stringify(this.toJSON())), 500);
+    const { onSpaceModelSave } = this.props;
+
+    const model = this.toJSON();
+
+    onSpaceModelSave({
+      payload: model,
+      callback: data => console.log(data),
+    });
   };
 
   handleNodeRef = (id, ref) => (this.nodeRefs[id] = ref);
@@ -141,16 +150,25 @@ export class GraphSpace extends Component {
    */
   handleMouseUp = (e, params, callback) => {
     if (this.state.connecting) {
-      this.setState({ connecting: false });
+      this.setState({ connecting: false }, () => {
+        this.setState(
+          prev => {
+            const { connections } = prev;
 
-      const connections = { ...this.state.connections };
+            if (connections && this.currentConnection) {
+              delete connections[this.currentConnection];
 
-      if (connections && this.currentConnection) {
-        delete connections[this.currentConnection];
-        this.setState({ connections });
-        this.currentConnection = undefined;
-        document.dispatchEvent(this.updateConnectionsEvent);
-      }
+              return {
+                connections,
+              };
+            }
+          },
+          () => {
+            this.currentConnection = undefined;
+            document.dispatchEvent(this.updateConnectionsEvent);
+          },
+        );
+      });
     }
   };
 

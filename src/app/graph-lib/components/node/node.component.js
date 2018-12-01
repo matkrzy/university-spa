@@ -219,12 +219,10 @@ class Node extends Component {
   };
 
   transformProducts = () => {
-    const { products, state } = this.props.market;
-
-    return Object.entries(products).map(([key, { label }]) => ({
-      productId: key,
-      label: `${label} (${state[key]})`,
-      id: key,
+    return Object.values(this.props.market).map(({ label, amount, id }) => ({
+      productId: id,
+      label: `${label} (${amount})`,
+      id,
     }));
   };
 

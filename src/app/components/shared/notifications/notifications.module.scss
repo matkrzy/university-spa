@@ -1,0 +1,26 @@
+.notifications {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  margin: 0 auto;
+  z-index: 10000000;
+  position: absolute;
+  flex-direction: column;
+}
+
+.notification {
+  margin: 0 auto 10px auto;
+  border-radius: 2px;
+  max-width: 100%;
+  height: auto;
+  min-height: 48px;
+  line-height: 1.5em;
+  background-color: #323232;
+  padding: 10px 25px;
+  font-weight: 400;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
