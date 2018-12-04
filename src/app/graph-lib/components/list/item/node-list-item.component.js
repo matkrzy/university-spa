@@ -5,7 +5,14 @@ import { compose } from 'redux';
 
 import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph-lib/contexts';
 
-import { NODE_INPUT, UPDATE_CONNECTIONS_EVENT } from '../../../dictionary';
+import { NODE_INPUT } from 'app/graph-lib/dictionary';
+
+import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
+import {
+  CONNECTION_REMOVE,
+  CONNECTION_ADD,
+  CONNECTION_CALCULATE,
+} from 'app/events/connections/connections.action-types';
 
 import styles from './node-list-item.module.scss';
 
@@ -20,14 +27,16 @@ class NodeListItem extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { connections: 0, connectionId: props.connectionId };
+    this.state = { connections: props.connections, connectionId: props.connectionId };
   }
 
   /**
    * When component is mounted it will add event listener on connections update event
    */
   componentDidMount() {
-    document.addEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
+    connectionsEventBus.on(CONNECTION_ADD, this.calculateConnections);
+    connectionsEventBus.on(CONNECTION_REMOVE, this.calculateConnections);
+    connectionsEventBus.on(CONNECTION_CALCULATE, this.calculateConnections);
   }
 
   componentDidUpdate(prevProps, prevState, prevContext) {
@@ -44,7 +53,9 @@ class NodeListItem extends Component {
    * It will remove listeners when component will be unmount
    */
   componentWillUnmount() {
-    document.removeEventListener(UPDATE_CONNECTIONS_EVENT, this.calculateConnections);
+    connectionsEventBus.removeListener(CONNECTION_ADD, this.calculateConnections);
+    connectionsEventBus.removeListener(CONNECTION_REMOVE, this.calculateConnections);
+    connectionsEventBus.removeListener(CONNECTION_CALCULATE, this.calculateConnections);
   }
 
   /**
@@ -63,8 +74,10 @@ class NodeListItem extends Component {
    * Helper for calculation connections for specific node based on node ID and type of item
    * @param {updateConnectionEvent} e - custom update connection event created in `GraphSpace`
    */
-  calculateConnections = e => {
-    this.setState({ connections: e.detail.calculateConnections(this.props.id, this.props.type) });
+  calculateConnections = payload => {
+    const { calculateConnections } = payload;
+
+    this.setState({ connections: calculateConnections(this.props.id, this.props.type) });
   };
 
   /**
@@ -136,7 +149,9 @@ class NodeListItem extends Component {
           data-id={this.props.id}
           data-type={this.props.type}
         />
-        <span className={styles.label}>{this.props.label}</span>
+        <span className={styles.label}>
+          <span>{this.props.label}</span>
+        </span>
       </li>
     );
   };

@@ -11,7 +11,7 @@ export class ButtonSvg extends Component {
     });
 
     return (
-      <span className={buttonClassNames} role="img" onClick={() => !disabled && this.props.onClick()}>
+      <span className={buttonClassNames} role="img" onClick={e => !disabled && this.props.onClick(e)}>
         {this.props.icon}
       </span>
     );

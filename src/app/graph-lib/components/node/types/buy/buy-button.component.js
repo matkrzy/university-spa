@@ -4,11 +4,16 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
 import { compose } from 'redux';
+import { connect } from 'react-redux';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarketActions, withMarket } from 'app/graph-lib/contexts';
+import { withMarket } from 'app/graph-lib/contexts';
 
 import { marketUpdateGoods } from 'app/socket/market/actions';
+
+import { processGoodsUpdate } from 'app/redux/process/process.actions';
+
+import { processGoodsEmit } from 'app/events/process/process.actions';
 
 import styles from './buy-button.module.scss';
 
@@ -23,7 +28,7 @@ export class BuyButton extends Component {
     };
   }
 
-  getProductId = () => this.props.inputs?.getListRef()[0].getProductId();
+  getProductId = () => this.props.inputs[0]?.getProductId();
 
   onSubmit = ({ amount }) => {
     if (!this.canBuy()) {
@@ -32,9 +37,12 @@ export class BuyButton extends Component {
 
     const productId = this.getProductId();
 
-    const payload = { amount: amount * -1, productId };
     marketUpdateGoods({
-      payload,
+      payload: { amount: amount * -1, productId },
+      callback: () => {
+        this.props.processGoodsUpdate({ amount: amount, productId });
+        processGoodsEmit({ amount: amount, productId });
+      },
     });
 
     this.formRef.current.form.reset();
@@ -47,9 +55,10 @@ export class BuyButton extends Component {
   };
 
   canBuy = () => {
-    const input = this.props.inputs?.getListRef()[0];
+    const input = this.props.inputs[0];
+    const output = this.props.outputs[0];
 
-    return !!input?.getConnections() && this.checkProductState(this.getProductId());
+    return !!input?.getConnections() && !!output?.getConnections() && this.checkProductState(this.getProductId());
   };
 
   render() {
@@ -57,8 +66,8 @@ export class BuyButton extends Component {
       <Form onSubmit={this.onSubmit} initialValues={{ amount: 1 }} ref={this.formRef}>
         {({ handleSubmit, invalid }) => (
           <form onSubmit={handleSubmit} className={styles.form}>
+            <div>state: {this.props.goods[this.getProductId()] || 0}</div>
             <Field component={TextFieldComponent} name="amount" className={styles.input} />
-
             <Button
               disabled={!this.canBuy()}
               onDoubleClick={e => e.stopPropagation()}
@@ -76,7 +85,14 @@ export class BuyButton extends Component {
   }
 }
 
+const mapStateToProps = ({ process: { goods } }) => ({ goods });
+
+const mapDispatchToProps = { processGoodsUpdate };
+
 export const BuyButtonComponent = compose(
-  withMarketActions,
   withMarket,
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
 )(BuyButton);

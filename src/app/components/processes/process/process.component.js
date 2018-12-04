@@ -40,8 +40,15 @@ export class ProcessComponent extends Component {
       callback: model => this.props.processUpdate(model),
     });
 
-    socket.on(MARKET_UPDATE, market => this.props.updateGlobalMarket(market));
-    socket.on(MARKET_LOCAL_UPDATE, localMarket => this.props.marketLocalUpdate(localMarket));
+    socket.on(MARKET_UPDATE, this.props.updateGlobalMarket);
+    socket.on(MARKET_LOCAL_UPDATE, this.props.marketLocalUpdate);
+  }
+
+  componentWillUnmount() {
+    socket.removeListener(MARKET_UPDATE, this.props.updateGlobalMarket);
+    socket.removeListener(MARKET_LOCAL_UPDATE, this.props.marketLocalUpdate);
+
+    this.props.processUpdate(null);
   }
 
   /**

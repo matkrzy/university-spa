@@ -8,6 +8,13 @@ import { AddLocalProductFormContainer } from './form/add-local-product-form.cont
  */
 export class AddLocalProductModalComponent extends Component {
   render() {
-    return <ModalContainer name="addLocalProduct" component={AddLocalProductFormContainer} title="Add local product" />;
+    return (
+      <ModalContainer
+        name="addLocalProduct"
+        component={AddLocalProductFormContainer}
+        title="Add local product"
+        modalClassName="ignore-react-onclickoutside"
+      />
+    );
   }
 }

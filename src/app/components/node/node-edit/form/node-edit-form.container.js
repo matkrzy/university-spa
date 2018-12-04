@@ -9,7 +9,6 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
 
   const inputs = node
     .getInputsRef()
-    .getListRef()
     .map(({ props: { label, maxConnections = 1, id, disabled, productId }, state: { connections } }) => ({
       label,
       maxConnections,
@@ -21,7 +20,6 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
 
   const outputs = node
     .getOutputsRef()
-    .getListRef()
     .map(({ props: { label, maxConnections = 1, id, disabled, productId }, state: { connections } }) => ({
       label,
       maxConnections,
@@ -48,10 +46,18 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
       process: node.props.process,
     },
     type: node.getType(),
-    products: Object.values({ ...market.data, ...marketLocal.data }).map(({ label, id }) => ({
-      id,
-      label,
-    })),
+    products: [
+      ...Object.values(market.data).map(({ label, id }) => ({
+        id,
+        label,
+        canRemove: false,
+      })),
+      ...Object.values(marketLocal.data).map(({ label, id }) => ({
+        id,
+        label,
+        canRemove: true,
+      })),
+    ],
   };
 };
 
