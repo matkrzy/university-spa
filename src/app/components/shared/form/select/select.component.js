@@ -14,7 +14,7 @@ export class SelectFieldComponent extends Component {
   };
 
   render() {
-    const { input, meta, placeholder, label, disabled, asyncErrors, options, fixedValue } = this.props;
+    const { input, meta, placeholder, label, disabled, asyncErrors, options, fixedValue, components } = this.props;
 
     const invalid = meta.invalid;
     const error = asyncErrors ? meta.error : meta.touched && meta.error;
@@ -38,6 +38,10 @@ export class SelectFieldComponent extends Component {
           placeholder={placeholder}
           getOptionLabel={({ label }) => label}
           getOptionValue={({ id }) => id}
+          //menuPortalTarget={document.body}
+          //menuPlacement={'auto'}
+          //menuPosition={'absolute'}
+          components={components}
         />
         {error ? <span>{meta.error}</span> : <span> </span>}
       </label>

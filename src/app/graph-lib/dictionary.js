@@ -20,3 +20,11 @@ export const NODE_TYPES = {
   sell: 'sell',
   step: 'process_step',
 };
+
+//**MACHINE STATE
+
+export const MACHINE_STATE = {
+  cold: 'cold',
+  preparing: 'preparing',
+  ready: 'ready',
+};

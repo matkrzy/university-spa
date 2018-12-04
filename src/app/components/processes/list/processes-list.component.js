@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 
+import { DotSpinnerComponent } from 'app/components/shared/loading';
+
 export class ProcessesListComponent extends Component {
   componentDidMount() {
     this.props.processesListFetch();
@@ -10,7 +12,7 @@ export class ProcessesListComponent extends Component {
     const { processes, parentPath } = this.props;
 
     if (!processes) {
-      return 'Loading';
+      return <DotSpinnerComponent />;
     }
 
     return (
@@ -18,10 +20,8 @@ export class ProcessesListComponent extends Component {
         <h2>Select process</h2>
         <ul>
           {processes.map(({ name, id }) => (
-            <li>
-              <Link key={id} to={`${parentPath}/${id}`}>
-                {name}
-              </Link>
+            <li key={id}>
+              <Link to={`${parentPath}/${id}`}>{name}</Link>
             </li>
           ))}
         </ul>

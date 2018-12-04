@@ -6,7 +6,6 @@ import { NodeSidebarDerails } from './node-sidebar-details.component';
 const mapStateToProps = (state, { params: node }) => {
   const inputs = node
     .getInputsRef()
-    .getListRef()
     .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
       label,
       maxConnections,
@@ -16,7 +15,6 @@ const mapStateToProps = (state, { params: node }) => {
 
   const outputs = node
     .getOutputsRef()
-    .getListRef()
     .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
       label,
       maxConnections,

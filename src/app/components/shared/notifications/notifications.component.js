@@ -1,4 +1,3 @@
-import { notificationsTake } from 'app/redux/notifications/notifications.actions';
 import React, { Component } from 'react';
 
 import styles from './notifications.module.scss';

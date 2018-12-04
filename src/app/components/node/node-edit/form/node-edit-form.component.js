@@ -18,6 +18,8 @@ import {
 
 import { validateMaxConnections } from 'app/utils/validators';
 
+import { NodeEditCustomSelectOption } from './custom-select-option/node-edit-custom-select-option';
+
 import { NODE_TYPES } from 'app/graph-lib';
 
 import styles from './node-edit-form.module.scss';
@@ -57,7 +59,7 @@ export class NodeEditForm extends Component {
   });
 
   addLocalProductButton = (
-    <Button onClick={() => this.props.modalToggle('addLocalProduct')}>
+    <Button onClick={() => this.props.modalToggle('addLocalProduct')} className={styles.addLocalProductButton}>
       <Tooltip placement="bottom" overlayClassName="tooltip" overlay="Add new local product">
         <FontAwesomeIcon icon={faPlus} />
       </Tooltip>
@@ -129,6 +131,7 @@ export class NodeEditForm extends Component {
                                   component={SelectFieldComponent}
                                   name={`${name}.productId`}
                                   options={this.props.products}
+                                  components={{ Option: NodeEditCustomSelectOption }}
                                 />
                                 {type === NODE_TYPES.step && this.addLocalProductButton}
                               </>
@@ -200,6 +203,7 @@ export class NodeEditForm extends Component {
                                   name={`${name}.productId`}
                                   options={this.props.products}
                                   value={values?.inputs[index]?.productId}
+                                  components={{ Option: NodeEditCustomSelectOption }}
                                 />
                                 {this.addLocalProductButton}
                               </>

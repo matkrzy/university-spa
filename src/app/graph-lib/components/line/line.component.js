@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import { withConnectionLineActions } from 'app/graph-lib/contexts';
 import { NODE_INPUT, NODE_OUTPUT } from 'app/graph-lib/dictionary';
 
+import { timeParser } from 'app/utils/time-parser.util';
+
 import styles from './line.module.scss';
 
 const uuid = require('uuid/v4');
@@ -27,14 +29,11 @@ class ConnectionLine extends Component {
       selected: false,
       position: { x: 0, y: 0 },
       contextMenuOpen: false,
-      process: {
-        buildTime: Math.floor(Math.random() * 10) + 4,
-      },
       dotColor: this.getRandomColor(),
-      //lineColor: this.getRandomColor(),
+      lineColor: this.getRandomColor(),
+      animation: false,
     };
   }
-
   /**
    * It will generate random color in hex for dots shows progress of process
    * @return {string}
@@ -181,6 +180,31 @@ class ConnectionLine extends Component {
 
     const lineClickAreaClassNames = classNames(styles.lineClickArea, {});
 
+    const animation = () => {
+      if (
+        !this.props.process.duration ||
+        this.props.machineState !== 'ready' ||
+        this.props.isMachneBusy.some(state => state === false || !this.state.animation)
+      ) {
+        return null;
+      }
+
+      const time = timeParser(this.props.process.duration);
+
+      return (
+        <animateMotion
+          href={`#${this.progressCircleId}`}
+          dur={`${time}ms`}
+          begin="0s"
+          fill="freeze"
+          repeatCount="indefinite"
+          rotate="auto-reverse"
+        >
+          <mpath href={`#${this.progressPathId}`} />
+        </animateMotion>
+      );
+    };
+
     return (
       <g>
         <circle r="5" fill={this.state.dotColor} id={this.progressCircleId} />
@@ -202,18 +226,7 @@ class ConnectionLine extends Component {
           id={this.progressPathId}
         />
 
-        {!this.props.connecting && (
-          <animateMotion
-            href={`#${this.progressCircleId}`}
-            dur={`${this.state.process.buildTime}s`}
-            begin="0s"
-            fill="freeze"
-            repeatCount="indefinite"
-            rotate="auto-reverse"
-          >
-            <mpath href={`#${this.progressPathId}`} />
-          </animateMotion>
-        )}
+        {!this.props.connecting && animation()}
       </g>
     );
   }

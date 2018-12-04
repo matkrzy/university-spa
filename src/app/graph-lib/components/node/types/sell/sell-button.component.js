@@ -3,18 +3,44 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
 
+import { processGoodsUpdate } from 'app/redux/process/process.actions';
+
 import { marketUpdateGoods } from 'app/socket/market/actions';
+import { processEventBus } from 'app/events/process/processEventBus';
+import { processGoodsEmit } from 'app/events/process/process.actions';
 
 import styles from './sell-button.module.scss';
 
-export class SellButtonComponent extends Component {
+export class SellButton extends Component {
   constructor(props) {
     super(props);
 
     this.formRef = createRef();
+
+    this.state = {
+      amount: 0,
+    };
+  }
+
+  componentDidMount() {
+    processEventBus.on('producedGood', this.handleGoods);
+  }
+
+  handleGoods = payload => {
+    if (payload.destination === this.props.inputs[0]?.getId()) {
+      this.setState(prev => ({
+        amount: prev.amount + payload.amount,
+      }));
+    }
+  };
+
+  componentWillUnmount() {
+    processEventBus.removeListener('producedGood', this.handleGoods);
   }
 
   onSubmit = ({ amount }) => {
@@ -23,20 +49,30 @@ export class SellButtonComponent extends Component {
     }
 
     const productId = this.getProductId();
-    const payload = { amount, productId };
+    //this.props.processGoodsUpdate({ amount: amount * -1, productId });
+    //marketUpdateGoods({
+    //  payload: { amount, productId },
+    //});
+
     marketUpdateGoods({
-      payload,
+      payload: { amount: amount, productId },
+      callback: () => {
+        this.props.processGoodsUpdate({ amount: amount * -1, productId });
+        processGoodsEmit({ amount: amount * -1, productId });
+      },
     });
 
     this.formRef.current.form.reset();
   };
 
-  getProductId = () => this.props.outputs?.getListRef()[0].getProductId();
+  getProductId = () => this.props.outputs[0]?.getProductId();
 
   canSell = () => {
-    const input = this.props.outputs?.getListRef()[0];
+    const input = this.props.inputs[0];
+    const output = this.props.outputs[0];
 
-    return !!input?.getConnections();
+    return !!input?.getConnections() && !!output?.getConnections();
+    //return !!input?.getConnections() && !!this.state.amount;
   };
 
   render() {
@@ -44,8 +80,8 @@ export class SellButtonComponent extends Component {
       <Form onSubmit={this.onSubmit} initialValues={{ amount: 1 }} ref={this.formRef}>
         {({ handleSubmit, invalid }) => (
           <form onSubmit={handleSubmit} className={styles.form}>
+            <div>state: {this.props.goods[this.getProductId()] || 0}</div>
             <Field component={TextFieldComponent} name="amount" className={styles.input} />
-
             <Button
               disabled={!this.canSell()}
               onDoubleClick={e => e.stopPropagation()}
@@ -63,4 +99,13 @@ export class SellButtonComponent extends Component {
   }
 }
 
-//export const SellButtonComponent = withMarketActions(SellButton);
+const mapStateToProps = ({ process: { goods } }) => ({ goods });
+
+const mapDispatchToProps = { processGoodsUpdate };
+
+export const SellButtonComponent = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+)(SellButton);

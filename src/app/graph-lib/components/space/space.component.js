@@ -17,9 +17,17 @@ import {
   ConnectionLineActionsContext,
 } from 'app/graph-lib/contexts';
 
-import { SAVE_SPACE_MODEL, MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
+import { MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
 
-import { saveSpaceModelEvent, updateConnectionsEvent } from '../../events';
+import {
+  connectionRemoveEvent,
+  connectionAddEvent,
+  connectionCalculateEvent,
+} from 'app/events/connections/connections.actions';
+
+import { spaceEventBus } from 'app/events/space/spaceEventBus';
+import { SPACE_MODEL_SAVE } from 'app/events/space/space.action-types';
+import { spaceModelSaveEvent } from 'app/events/space/space.actions';
 
 import styles from './space.module.scss';
 
@@ -83,26 +91,26 @@ export class GraphSpace extends Component {
       //onItemBuy: this.props.onItemBuy,
     };
 
-    this.updateConnectionsEvent = updateConnectionsEvent(this.calculateConnections);
-
-    this.saveSpaceModelEvent = saveSpaceModelEvent;
-
     this.currentConnection = undefined;
     this.nodeRefs = {};
 
     window.space = this;
+
+    this.debouncedSaveSpaceModel = debounce(this.handleSaveSpaceModel, 500);
   }
 
   /**
    * When component is mounted it will set up listeners, update connections and set flag to display connections
    */
   componentDidMount() {
-    //debounce(onChange.bind(this, dispatch), 500),
     document.addEventListener(MOUSE_MOVE, this.handleMouseMove);
     document.addEventListener(MOUSE_UP, this.handleMouseUp);
-    document.addEventListener(SAVE_SPACE_MODEL, debounce(this.handleSaveSpaceModel, 500));
+    spaceEventBus.on(SPACE_MODEL_SAVE, this.debouncedSaveSpaceModel);
 
-    document.dispatchEvent(this.updateConnectionsEvent);
+    connectionCalculateEvent({
+      calculateConnections: this.calculateConnections,
+    });
+
     this.setState({ showConnections: true });
   }
 
@@ -112,7 +120,7 @@ export class GraphSpace extends Component {
   componentWillUnmount() {
     document.removeEventListener(MOUSE_MOVE, this.handleMouseMove);
     document.removeEventListener(MOUSE_UP, this.handleMouseUp);
-    document.removeEventListener(SAVE_SPACE_MODEL, this.handleSaveSpaceModel);
+    spaceEventBus.removeListener(SPACE_MODEL_SAVE, this.debouncedSaveSpaceModel);
   }
 
   /**
@@ -165,7 +173,7 @@ export class GraphSpace extends Component {
           },
           () => {
             this.currentConnection = undefined;
-            document.dispatchEvent(this.updateConnectionsEvent);
+            connectionCalculateEvent({ calculateConnections: this.calculateConnections });
           },
         );
       });
@@ -218,7 +226,7 @@ export class GraphSpace extends Component {
       }),
       () => {
         callback(this.currentConnection);
-        document.dispatchEvent(this.updateConnectionsEvent);
+        connectionCalculateEvent({ calculateConnections: this.calculateConnections });
       },
     );
   };
@@ -281,10 +289,11 @@ export class GraphSpace extends Component {
       }),
       () => {
         callback(this.currentConnection);
+        const connection = this.state.connections[this.currentConnection];
         this.currentConnection = undefined;
 
-        document.dispatchEvent(this.updateConnectionsEvent);
-        document.dispatchEvent(this.saveSpaceModelEvent);
+        connectionAddEvent({ calculateConnections: this.calculateConnections, ...connection });
+        spaceModelSaveEvent();
       },
     );
   };
@@ -335,7 +344,7 @@ export class GraphSpace extends Component {
   handleNodeDragStop = (event, data, callback) => {
     this.setState({ dragging: false });
 
-    document.dispatchEvent(this.saveSpaceModelEvent);
+    spaceModelSaveEvent();
   };
 
   /**
@@ -363,11 +372,14 @@ export class GraphSpace extends Component {
    *
    */
   handleConnectionRemove = (id, callback) => {
+    const connection = this.getConnectionById(id);
+
     this.setState(this.removeConnection(id), () => {
       !!callback && callback();
 
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModelEvent);
+      connectionRemoveEvent({ ...connection, calculateConnections: this.calculateConnections });
+
+      spaceModelSaveEvent();
     });
   };
 
@@ -411,8 +423,8 @@ export class GraphSpace extends Component {
         const draggableProps = props.draggableProps;
 
         const ref = Object.values(this.nodeRefs)[index];
-        const componentInputs = ref.getInputsRef().getListRef() || [];
-        const componentOutputs = ref.getOutputsRef().getListRef() || [];
+        const componentInputs = ref.getInputsRef() || [];
+        const componentOutputs = ref.getOutputsRef() || [];
         const inputs = props.inputs || [];
         const outputs = props.outputs || [];
         const position = ref.getPosition();
@@ -488,10 +500,7 @@ export class GraphSpace extends Component {
       outputs,
     };
 
-    this.setState(
-      prev => ({ nodes: [...prev.nodes, <NodeComponent {...props} />] }),
-      () => document.dispatchEvent(this.saveSpaceModelEvent),
-    );
+    this.setState(prev => ({ nodes: [...prev.nodes, <NodeComponent {...props} />] }), () => spaceModelSaveEvent());
   };
 
   /**
@@ -523,8 +532,8 @@ export class GraphSpace extends Component {
     Object.values(outputs).map(({ props: { id } }) => removeConnectionByIOId(id));
 
     this.setState({ nodes, connections }, () => {
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModelEvent);
+      connectionCalculateEvent({ calculateConnections: this.calculateConnections });
+      spaceModelSaveEvent();
     });
   };
 
@@ -576,8 +585,8 @@ export class GraphSpace extends Component {
     nodes[nodeIndex] = newNode;
 
     this.setState({ nodes }, () => {
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModelEvent);
+      connectionCalculateEvent({ calculateConnections: this.calculateConnections });
+      spaceModelSaveEvent();
     });
   };
 
@@ -593,12 +602,16 @@ export class GraphSpace extends Component {
    */
   resetConnections = () =>
     this.setState({ connections: [] }, () => {
-      document.dispatchEvent(this.updateConnectionsEvent);
-      document.dispatchEvent(this.saveSpaceModelEvent);
+      connectionCalculateEvent({ calculateConnections: this.calculateConnections });
+      spaceModelSaveEvent();
     });
 
   getConnectionById = connectionId => {
     return this.state.connections[connectionId];
+  };
+
+  getNodeById = nodeId => {
+    return this.nodeRefs[nodeId];
   };
 
   render() {
@@ -635,8 +648,18 @@ export class GraphSpace extends Component {
                       <SvgComopnent ref="svgComponent">
                         {this.state.showConnections &&
                           Object.entries(this.state.connections).map(
-                            ([key, { start, end }]) =>
-                              !!start && !!end ? <LineComponent id={key} start={start} end={end} key={key} /> : null,
+                            ([key, { start, end, startNode }]) =>
+                              !!start && !!end ? (
+                                <LineComponent
+                                  id={key}
+                                  start={start}
+                                  end={end}
+                                  key={key}
+                                  process={this.getNodeById(startNode).getProcess()}
+                                  machineState={this.getNodeById(startNode).getState()}
+                                  isMachneBusy={this.getNodeById(startNode).getBusy()}
+                                />
+                              ) : null,
                           )}
                         {newLine}
                       </SvgComopnent>

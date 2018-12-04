@@ -4,13 +4,28 @@ import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 import { findDOMNode } from 'react-dom';
 import { compose } from 'redux';
+import { connect } from 'react-redux';
+import isEqual from 'lodash/isEqual';
 
 import { withNodeEvents, withNodeActions, withMarket } from 'app/graph-lib/contexts';
 
-import { NODE_TYPES } from '../../dictionary';
-import { NodeListInputsComponent } from '../list/inputs/node-list-inputs.component';
-import { NodeListOutputsComponent } from '../list/outputs/node-list-outputs.component';
+import { timeParser } from 'app/utils/time-parser.util';
+
+import { NODE_TYPES, MACHINE_STATE, NODE_INPUT, NODE_OUTPUT } from '../../dictionary';
+
+import { NodeList } from '../list/node-list.component';
 import { BuyButtonComponent, SellButtonComponent } from './types';
+
+import { NodeTitleComponent } from './title/node-title.component';
+import { NodeListItemComponent } from 'app/graph-lib/components/list/item/node-list-item.component';
+
+import { processEventBus } from 'app/events/process/processEventBus';
+import { PROCESS_GOODS_EMIT } from 'app/events/process/process.action-types';
+
+import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
+import { CONNECTION_REMOVE, CONNECTION_ADD } from 'app/events/connections/connections.action-types';
+
+import { processGoodsUpdate } from 'app/redux/process/process.actions';
 
 import styles from './node.module.scss';
 
@@ -33,17 +48,108 @@ class Node extends Component {
   constructor(props) {
     super(props);
 
+    const state = props.type === NODE_TYPES.step ? { state: MACHINE_STATE.cold } : {};
+
     this.state = {
       selected: false,
       connectedInputs: 0,
       connectedOutput: 0,
       dragging: false,
       position: props.draggableProps.defaultPosition,
+      inputsRef: {},
+      outputsRef: {},
+      busy: new Array(props.outputs.length).fill(false),
+      ...state,
     };
-
-    this.inputsRef = React.createRef();
-    this.outputsRef = React.createRef();
   }
+
+  /**
+   * When component is mounted `node` is set by `findDOMNode(this)` and node is registered by `createNodeRef`
+   */
+  componentDidMount() {
+    const {
+      nodeActions: { onCreateRef },
+    } = this.props;
+
+    this.node = findDOMNode(this);
+    onCreateRef(this.props.id, this);
+
+    this.setUpNode();
+
+    connectionsEventBus.on(CONNECTION_ADD, this.handleConnectionsChange);
+    connectionsEventBus.on(CONNECTION_REMOVE, this.handleConnectionsChange);
+
+    processEventBus.on(PROCESS_GOODS_EMIT, this.handleGoodsEmit);
+  }
+
+  handleGoodsEmit = payload => {
+    const { type } = this.props;
+
+    if (type === NODE_TYPES.step) {
+      const {
+        process: { products },
+        goods,
+      } = this.props;
+
+      Object.entries(products).forEach(([product, { requirements }]) => {
+        const shouldStart = Object.entries(requirements || {}).map(([productId, amount]) => goods[productId] >= amount);
+
+        shouldStart.forEach((shouldProcessStart, i) => {
+          if (shouldProcessStart && !this.state.busy[i] && this.state.state === MACHINE_STATE.ready) {
+            this.startProcess(product, i);
+          }
+        });
+      });
+    }
+  };
+
+  componentWillUnmount() {
+    connectionsEventBus.removeListener(CONNECTION_ADD, this.handleConnectionsChange);
+    connectionsEventBus.removeListener(CONNECTION_REMOVE, this.handleConnectionsChange);
+    processEventBus.removeListener(PROCESS_GOODS_EMIT, this.handleGoodsEmit);
+  }
+
+  handleConnectionsChange = payload => {
+    const { startNode, endNode } = payload;
+    const { id } = this.props;
+
+    if (startNode === id || endNode === id) {
+      this.setState({ inputsRef: {}, outputsRef: {} }, () => this.forceUpdate());
+    }
+  };
+
+  preparePorts = ({ ports, type, defaultLabel, refName }) => {
+    return ports.map(({ label, id, maxConnections, disabled, productId, connectionId, connections }) => (
+      <NodeListItemComponent
+        connectionId={connectionId}
+        disabled={disabled}
+        id={id}
+        key={id}
+        label={label || defaultLabel}
+        maxConnections={maxConnections || 1}
+        nodeId={this.props.id}
+        productId={productId}
+        type={type}
+        connections={connections}
+        ref={ref => this.addRef(id, ref, refName)}
+      />
+    ));
+  };
+
+  addRef = (id, ref, refName) => {
+    if (ref && refName) {
+      const oldRef = this.state[refName][id];
+
+      if (!isEqual(oldRef, ref)) {
+        this.setState(prev => ({
+          [refName]: {
+            ...prev[refName],
+            [id]: ref,
+          },
+        }));
+      }
+    }
+  };
 
   /**
    * Getter for position of `NodeComponent`
@@ -65,26 +171,92 @@ class Node extends Component {
 
   /**
    * Getter for `inputsRef`
-   * @return {Object}
+   * @return {Array}
    */
-  getInputsRef = () => this.inputsRef.current;
+  getInputsRef = () => Object.values(this.state.inputsRef);
 
   /**
    * Getter for `outputsRef`
-   * @return {null}
+   * @return {Array}
    */
-  getOutputsRef = () => this.outputsRef.current;
+  getOutputsRef = () => Object.values(this.state.outputsRef);
 
-  /**
-   * When component is mounted `node` is set by `findDOMNode(this)` and node is registered by `createNodeRef`
-   */
-  componentDidMount() {
-    const {
-      nodeActions: { onCreateRef },
-    } = this.props;
+  getProcess = () => this.props.process;
 
-    this.node = findDOMNode(this);
-    onCreateRef(this.props.id, this);
+  getState = () => this.state.state;
+
+  getBusy = () => this.state.busy;
+
+  setUpNode = () => {
+    const { process, type } = this.props;
+
+    if (NODE_TYPES.step === type) {
+      const { setup } = process;
+
+      if (!setup) {
+        console.log('Please set up time machine!');
+      } else {
+        const time = timeParser(setup);
+
+        this.setState(
+          {
+            state: MACHINE_STATE.preparing,
+          },
+          () => {
+            setTimeout(() => {
+              this.setState({ state: MACHINE_STATE.ready });
+            }, time);
+          },
+        );
+      }
+    }
+  };
+
+  startProcess = (newProductId, processId) => {
+    this.setState(
+      prev => ({
+        busy: [...prev.busy].fill(true, processId, processId + 1),
+      }),
+      () => {
+        const { process } = this.props;
+        const { duration, products } = process;
+        const time = timeParser(duration);
+
+        Object.entries(products[newProductId].requirements).forEach(([productId, amount]) => {
+          this.props.processGoodsUpdate({ productId, amount: amount * -1 });
+        });
+
+        setTimeout(() => {
+          const {
+            process: { products },
+          } = this.props;
+
+          ///update state and process emit event
+          const payload = { productId: newProductId, amount: products[newProductId].amount };
+          this.props.processGoodsUpdate(payload);
+          processEventBus.emit(PROCESS_GOODS_EMIT, payload);
+
+          this.setState(prev => ({
+            busy: [...prev.busy].fill(false, processId, processId + 1),
+          }));
+
+          this.handleGoodsEmit();
+        }, time);
+      },
+    );
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const { process } = this.props;
+    const { state } = this.state;
+
+    if (!!process.setup && process.setup !== prevProps.process.setup && state === MACHINE_STATE.cold) {
+      this.setUpNode();
+    }
+
+    if (prevState.state === MACHINE_STATE.preparing && this.state.state === MACHINE_STATE.ready) {
+      this.handleGoodsEmit();
+    }
   }
 
   /**
@@ -186,8 +358,8 @@ class Node extends Component {
           events: {
             onClick: () => {
               const params = {
-                inputs: this.getInputsRef().listRef,
-                outputs: this.getOutputsRef().listRef,
+                inputs: this.getInputsRef(),
+                outputs: this.getOutputsRef(),
                 id: this.props.id,
               };
 
@@ -249,8 +421,19 @@ class Node extends Component {
   render() {
     const { type } = this.props;
 
-    const inputs = this.getInputs();
-    const outputs = this.getOutputs();
+    const inputs = this.preparePorts({
+      ports: this.getInputs(),
+      type: NODE_INPUT,
+      defaultLabel: 'input',
+      refName: 'inputsRef',
+    });
+
+    const outputs = this.preparePorts({
+      ports: this.getOutputs(),
+      type: NODE_OUTPUT,
+      defaultLabel: 'output',
+      refName: 'outputsRef',
+    });
 
     const nodeClassNames = classNames(styles.node, {
       [styles.selected]: this.state.selected,
@@ -284,15 +467,25 @@ class Node extends Component {
           onDoubleClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
         >
-          <div className={headerClassNames}>{this.props.title}</div>
+          <NodeTitleComponent
+            {...this.props}
+            state={this.state.state}
+            className={headerClassNames}
+            busy={this.state.busy}
+          />
+
           <div className={styles.body}>
-            <NodeListInputsComponent ref={this.inputsRef} inputs={inputs} nodeId={this.props.id} />
+            <NodeList>{inputs}</NodeList>
 
-            {type === NODE_TYPES.buy && <BuyButtonComponent inputs={this.getInputsRef()} />}
+            {type === NODE_TYPES.buy && (
+              <BuyButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} />
+            )}
 
-            {type === NODE_TYPES.sell && <SellButtonComponent outputs={this.getOutputsRef()} />}
+            {type === NODE_TYPES.sell && (
+              <SellButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} />
+            )}
 
-            <NodeListOutputsComponent ref={this.outputsRef} outputs={outputs} nodeId={this.props.id} />
+            <NodeList>{outputs}</NodeList>
           </div>
         </div>
       </Draggable>
@@ -300,8 +493,18 @@ class Node extends Component {
   }
 }
 
+const mapStateToProps = ({ process: { goods }, marketLocal: { data: marketLocal } }) => ({ goods, marketLocal });
+
+const mapDispatchToProps = {
+  processGoodsUpdate,
+};
+
 export const NodeComponent = compose(
   withNodeEvents,
   withNodeActions,
   withMarket,
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
 )(onClickOutside(Node));
