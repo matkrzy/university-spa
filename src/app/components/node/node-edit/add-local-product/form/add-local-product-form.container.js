@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 
 import { AddLocalProductFormComponent } from './add-local-product-form.component';
-import { marketAddGoods } from 'app/socket/market/actions';
+import { marketGoodsAdd } from 'app/socket/market/actions';
 
 const mapStateToProps = ({
   process: {
@@ -15,7 +15,7 @@ const mapStateToProps = ({
 
 const mapDistpatchToProps = (dispatch, { toggle }) => ({
   onSubmit: values => {
-    marketAddGoods({
+    marketGoodsAdd({
       payload: values,
       callback: toggle,
     });

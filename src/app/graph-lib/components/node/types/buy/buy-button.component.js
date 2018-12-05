@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { TextFieldComponent, Button } from 'app/components/shared';
 import { withMarket } from 'app/graph-lib/contexts';
 
-import { marketUpdateGoods } from 'app/socket/market/actions';
+import { marketGoodsUpdate } from 'app/socket/market/actions';
 
 import { processGoodsUpdate } from 'app/redux/process/process.actions';
 
@@ -37,7 +37,7 @@ export class BuyButton extends Component {
 
     const productId = this.getProductId();
 
-    marketUpdateGoods({
+    marketGoodsUpdate({
       payload: { amount: amount * -1, productId },
       callback: () => {
         this.props.processGoodsUpdate({ amount: amount, productId });
@@ -50,6 +50,8 @@ export class BuyButton extends Component {
 
   checkProductState = id => {
     const { market } = this.props;
+
+    console.log(market, id);
 
     return !!market[id].amount;
   };

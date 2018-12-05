@@ -46,18 +46,11 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
       process: node.props.process,
     },
     type: node.getType(),
-    products: [
-      ...Object.values(market.data).map(({ label, id }) => ({
-        id,
-        label,
-        canRemove: false,
-      })),
-      ...Object.values(marketLocal.data).map(({ label, id }) => ({
-        id,
-        label,
-        canRemove: true,
-      })),
-    ],
+    products: Object.values(market.data).map(({ label, id, processId }) => ({
+      id,
+      label,
+      canRemove: !!processId,
+    })),
   };
 };
 

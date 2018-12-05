@@ -10,9 +10,9 @@ import { AddLocalProductModalComponent } from '../../node/node-edit/add-local-pr
 import { socket } from 'app/socket/socket';
 
 import { processGet, processUpdate } from 'app/socket/process/actions';
-import { marketGet, marketLocalGet } from 'app/socket/market/actions';
+import { marketGet } from 'app/socket/market/actions';
 
-import { MARKET_UPDATE, MARKET_LOCAL_UPDATE } from 'app/socket/market/action-types';
+import { MARKET_UPDATE } from 'app/socket/market/action-types';
 
 /** Class representing a graph preview component
  * @extends Component
@@ -30,23 +30,17 @@ export class ProcessComponent extends Component {
   componentDidMount() {
     const { id } = this.props.match.params;
 
-    marketGet({ callback: this.props.updateGlobalMarket });
-    marketLocalGet({
-      payload: { processId: id },
-      callback: this.props.marketLocalUpdate,
-    });
+    marketGet({ payload: { processId: id }, callback: this.props.updateMarket });
     processGet({
       payload: { id },
-      callback: model => this.props.processUpdate(model),
+      callback: this.props.processUpdate,
     });
 
-    socket.on(MARKET_UPDATE, this.props.updateGlobalMarket);
-    socket.on(MARKET_LOCAL_UPDATE, this.props.marketLocalUpdate);
+    socket.on(MARKET_UPDATE, this.props.updateMarket);
   }
 
   componentWillUnmount() {
-    socket.removeListener(MARKET_UPDATE, this.props.updateGlobalMarket);
-    socket.removeListener(MARKET_LOCAL_UPDATE, this.props.marketLocalUpdate);
+    socket.removeListener(MARKET_UPDATE, this.props.updateMarket);
 
     this.props.processUpdate(null);
   }
@@ -68,10 +62,10 @@ export class ProcessComponent extends Component {
   };
 
   render() {
-    const { process } = this.props;
+    const { process, market } = this.props;
     const { id } = this.props.match.params;
 
-    if (this.props.loading || !process) return <DotSpinnerComponent />;
+    if (!process || !market) return <DotSpinnerComponent />;
 
     return (
       <Fragment>
@@ -79,7 +73,7 @@ export class ProcessComponent extends Component {
         <GraphSpace
           connections={process.connections}
           nodes={process.nodes}
-          market={this.props.market}
+          market={market}
           ref={this.space}
           onNodeEdit={this.handleNodeEdit}
           onNodeDoubleClick={this.handleNodeDoubleClick}

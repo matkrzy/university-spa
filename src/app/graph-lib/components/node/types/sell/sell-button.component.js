@@ -10,7 +10,7 @@ import { TextFieldComponent, Button } from 'app/components/shared';
 
 import { processGoodsUpdate } from 'app/redux/process/process.actions';
 
-import { marketUpdateGoods } from 'app/socket/market/actions';
+import { marketGoodsUpdate } from 'app/socket/market/actions';
 import { processEventBus } from 'app/events/process/processEventBus';
 import { processGoodsEmit } from 'app/events/process/process.actions';
 
@@ -54,7 +54,7 @@ export class SellButton extends Component {
     //  payload: { amount, productId },
     //});
 
-    marketUpdateGoods({
+    marketGoodsUpdate({
       payload: { amount: amount, productId },
       callback: () => {
         this.props.processGoodsUpdate({ amount: amount * -1, productId });

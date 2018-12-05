@@ -3,24 +3,20 @@ import { compose } from 'redux';
 
 import { modalToggle } from 'app/redux/modal/modal.actions';
 import { sidebarToggle } from 'app/redux/sidebar/sidebar.actions';
-import { updateGlobalMarket } from 'app/redux/market-global/market-global.actions';
-import { marketLocalUpdate } from 'app/redux/market-local/market-local.actions';
+import { updateMarket } from 'app/redux/market/market.actions';
 import { processUpdate } from 'app/redux/process/process.actions';
 
 import { ProcessComponent } from './process.component';
 
-const mapStateToProps = ({ market: { data }, localMarket, process: { data: process } }) => ({
-  market: data,
-  loading: !data,
-  localMarket,
+const mapStateToProps = ({ market: { data: market }, process: { data: process } }) => ({
+  market,
   process,
 });
 
 const mapDispatchToProps = {
   modalToggle,
   sidebarToggle,
-  updateGlobalMarket,
-  marketLocalUpdate,
+  updateMarket,
   processUpdate,
 };
 
