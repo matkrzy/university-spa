@@ -391,11 +391,13 @@ class Node extends Component {
   };
 
   transformProducts = () => {
-    return Object.values(this.props.market).map(({ label, amount, id }) => ({
-      productId: id,
-      label: `${label} (${amount})`,
-      id,
-    }));
+    return Object.values(this.props.market)
+      .filter(({ processId }) => !processId)
+      .map(({ label, amount, id }) => ({
+        productId: id,
+        label: `${label} (${amount})`,
+        id,
+      }));
   };
 
   getInputs = () => {
@@ -493,7 +495,7 @@ class Node extends Component {
   }
 }
 
-const mapStateToProps = ({ process: { goods }, marketLocal: { data: marketLocal } }) => ({ goods, marketLocal });
+const mapStateToProps = ({ process: { goods } }) => ({ goods });
 
 const mapDispatchToProps = {
   processGoodsUpdate,
