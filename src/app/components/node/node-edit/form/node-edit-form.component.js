@@ -30,6 +30,13 @@ const uuid = require('uuid/v4');
  * @extends Component
  */
 export class NodeEditForm extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      initialValues: props.initialValues,
+    };
+  }
   handleAddNewField = (push, type) => () => {
     const input = {
       id: uuid(),
@@ -39,6 +46,10 @@ export class NodeEditForm extends Component {
     };
 
     push(type, input);
+  };
+
+  handleAddProcessProduct = (push, field) => () => {
+    push(field, {});
   };
 
   disableInput = (values, index) => {
@@ -51,10 +62,31 @@ export class NodeEditForm extends Component {
 
   disableRemoveAction = (values, type, index) => values[type][index] && !!Number(values[type][index].connections);
 
+  handlePortRemove = (fields, remove, index) => {
+    const { productId } = fields.value[index];
+
+    this.processProductToRemove = productId;
+
+    fields.remove(index);
+  };
+
   updateValues = createDecorator({
     field: /inputs\[\d+\].productId/,
     updates: {
       'outputs[0].productId': value => value,
+    },
+  });
+
+  updateProcessElements = createDecorator({
+    field: 'outputs',
+    updates: {
+      'process.products': (value, allValues) => {
+        delete allValues.process.products[this.processProductToRemove];
+
+        this.processProductToRemove = undefined;
+
+        return allValues.process.products;
+      },
     },
   });
 
@@ -69,10 +101,24 @@ export class NodeEditForm extends Component {
   render() {
     const { type } = this.props;
 
+    const decorators = () => {
+      const arrayOfDecorators = [];
+
+      if (NODE_TYPES.buy === type) {
+        arrayOfDecorators.push(this.updateValues);
+      }
+
+      if (NODE_TYPES.step === type) {
+        arrayOfDecorators.push(this.updateProcessElements);
+      }
+
+      return arrayOfDecorators.length ? arrayOfDecorators : undefined;
+    };
+
     return (
       <Form
-        decorators={NODE_TYPES.buy === type ? [this.updateValues] : undefined}
-        initialValues={this.props.initialValues}
+        decorators={decorators()}
+        initialValues={this.state.initialValues}
         onSubmit={this.props.onSubmit}
         mutators={{
           ...arrayMutators,
@@ -83,7 +129,7 @@ export class NodeEditForm extends Component {
           invalid,
           values,
           form: {
-            mutators: { push },
+            mutators: { push, remove },
           },
         }) => (
           <form onSubmit={handleSubmit} name="form" id="form" autoComplete="off">
@@ -172,7 +218,8 @@ export class NodeEditForm extends Component {
                                   className={styles.removeField}
                                   overlayClassName={styles.removeFieldTooltip}
                                   message="Remove all connections before removing"
-                                  onClick={() => fields.remove(index)}
+                                  //onClick={() => fields.remove(index)}
+                                  onClick={() => this.handlePortRemove(fields, remove, index)}
                                   disabled={this.disableRemoveAction(values, 'outputs', index)}
                                 />
                               )}
@@ -241,37 +288,73 @@ export class NodeEditForm extends Component {
                 <section className="form-section">
                   <div className="form-section__title">Requirements</div>
                   <div className="form-section__body">
-                    {Object.entries(this.props.process.products).map(([key, value]) => {
-                      const outputProject = this.props.market[key];
-                      const { requirements } = value;
+                    {values.outputs.map((output, i) => {
+                      const { productId } = output;
+
+                      if (!productId) {
+                        return null;
+                      }
+
+                      const { market } = this.props;
+
+                      const options = Object.values(values.inputs || {}).map(({ label, productId }) => ({
+                        id: productId,
+                        label: market[productId].label,
+                      }));
+
+                      const { label } = market[productId];
+
+                      const fieldName = `process.products.${productId}`;
 
                       return (
-                        <div>
-                          <div>{outputProject.label}</div>
-                          <div>
-                            <div>Requirements</div>
-                            {requirements &&
-                              Object.entries(requirements).map(([key, amount]) => {
-                                const marketProduct = this.props.market[key];
-
-                                return (
-                                  <div>
-                                    {marketProduct.label} {amount}
-                                  </div>
-                                );
-                              })}
+                        <section className="form-section" key={i}>
+                          <div className="form-section__title">{label}</div>
+                          <div className="form-section__body">
+                            <FieldArray name={`${fieldName}.requirements`}>
+                              {({ fields }) =>
+                                fields.map((field, index) => {
+                                  return (
+                                    <div key={field} className="form-group">
+                                      <ButtonSvg
+                                        icon="✖"
+                                        className={styles.removeField}
+                                        overlayClassName={styles.removeFieldTooltip}
+                                        message="Remove all connections before removing"
+                                        onClick={() => fields.remove(index, index)}
+                                      />
+                                      <Field
+                                        label="Product"
+                                        component={SelectFieldComponent}
+                                        name={`${field}.productId`}
+                                        options={options}
+                                        components={{ Option: NodeEditCustomSelectOption }}
+                                      />
+                                      <Field
+                                        label="Required input amount"
+                                        component={TextFieldComponent}
+                                        name={`${field}.amount`}
+                                        type="number"
+                                        specializedProps={{ min: 1, step: 1 }}
+                                      />
+                                    </div>
+                                  );
+                                })
+                              }
+                            </FieldArray>
+                            <Field
+                              label="Recieved output amount"
+                              component={TextFieldComponent}
+                              name={`${fieldName}.amount`}
+                              type="number"
+                              specializedProps={{ min: 1, step: 1 }}
+                            />
+                            <Button onClick={this.handleAddProcessProduct(push, `${fieldName}.requirements`)}>
+                              Add product
+                            </Button>
                           </div>
-                        </div>
+                        </section>
                       );
                     })}
-
-                    {/*{Object.keys(this.props.process.products).map(product => {*/}
-                    {/*const selectedProduct = this.props.market[product];*/}
-
-                    {/*console.log(this.props.process);*/}
-
-                    {/*return <div>{selectedProduct.label}</div>;*/}
-                    {/*})}*/}
                   </div>
                 </section>
               </>

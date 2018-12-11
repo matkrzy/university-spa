@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { withConnectionLineActions } from 'app/graph-lib/contexts';
 import { NODE_INPUT, NODE_OUTPUT } from 'app/graph-lib/dictionary';
 
-import { timeParser } from 'app/utils/time-parser.util';
+//import { timeParser } from 'app/utils/time-parser.util';
 
 import styles from './line.module.scss';
 
@@ -180,34 +180,34 @@ class ConnectionLine extends Component {
 
     const lineClickAreaClassNames = classNames(styles.lineClickArea, {});
 
-    const animation = () => {
-      if (
-        !this.props.process.duration ||
-        this.props.machineState !== 'ready' ||
-        this.props.isMachneBusy.some(state => state === false || !this.state.animation)
-      ) {
-        return null;
-      }
-
-      const time = timeParser(this.props.process.duration);
-
-      return (
-        <animateMotion
-          href={`#${this.progressCircleId}`}
-          dur={`${time}ms`}
-          begin="0s"
-          fill="freeze"
-          repeatCount="indefinite"
-          rotate="auto-reverse"
-        >
-          <mpath href={`#${this.progressPathId}`} />
-        </animateMotion>
-      );
-    };
+    //const animation = () => {
+    //  if (
+    //    !this.props.process.duration ||
+    //    this.props.machineState !== 'ready' ||
+    //    this.props.isMachneBusy.some(state => state === false || !this.state.animation)
+    //  ) {
+    //    return null;
+    //  }
+    //
+    //  const time = timeParser(this.props.process.duration);
+    //
+    //  return (
+    //    <animateMotion
+    //      href={`#${this.progressCircleId}`}
+    //      dur={`${time}ms`}
+    //      begin="0s"
+    //      fill="freeze"
+    //      repeatCount="indefinite"
+    //      rotate="auto-reverse"
+    //    >
+    //      <mpath href={`#${this.progressPathId}`} />
+    //    </animateMotion>
+    //  );
+    //};
 
     return (
       <g>
-        <circle r="5" fill={this.state.dotColor} id={this.progressCircleId} />
+        {/*<circle r="5" fill={this.state.dotColor} id={this.progressCircleId} />*/}
         <circle cx={start.x} cy={start.y} r="3" fill="#337ab7" />
         <circle cx={end.x} cy={end.y} r="3" fill="#9191A8" />
         <path
@@ -226,7 +226,7 @@ class ConnectionLine extends Component {
           id={this.progressPathId}
         />
 
-        {!this.props.connecting && animation()}
+        {/*{!this.props.connecting && animation()}*/}
       </g>
     );
   }

@@ -61,7 +61,16 @@ class Node extends Component {
       outputsRef: {},
       busy: new Array(Object.keys(props.process?.products || {}).length).fill(false),
       ...state,
+      processIndex: 0,
     };
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (Object.keys(props.process?.products || {}).length !== state.busy.length) {
+      return { busy: new Array(Object.keys(props.process?.products || {}).length).fill(false) };
+    }
+
+    return null;
   }
 
   /**
@@ -92,21 +101,38 @@ class Node extends Component {
         goods,
       } = this.props;
 
-      Object.entries(products || {}).forEach(([product, { requirements = {} }]) => {
-        const shouldStart = Object.entries(requirements || {}).map(([productId, amount]) => {
-          const inputs = this.getInputsRef();
-          const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()));
-          const { startNode } = connections.find(connection => productId === connection.productId) || {};
+      const { processIndex } = this.state;
+      if (this.state.busy[processIndex]) {
+        return null;
+      }
 
-          return get(goods, [startNode, productId], 0) >= amount;
-        });
+      const processDescriptions = Object.entries({ ...products } || {});
+      const [outputProductId, value] = processDescriptions[processIndex];
+      const { requirements = [] } = value;
 
-        shouldStart.forEach((shouldProcessStart, i) => {
-          if (shouldProcessStart && !this.state.busy[i] && this.state.state === MACHINE_STATE.ready) {
-            this.startProcess(product, i);
-          }
-        });
+      //check requirements for one product
+      const shouldStartProcess = requirements.map((product, i) => {
+        const { productId: requiredProductId, amount: requiredAmount } = product;
+
+        const inputs = this.getInputsRef();
+        const connections = inputs
+          .map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()))
+          .filter(connection => connection !== undefined);
+
+        if (!connections.length) {
+          return false;
+        }
+
+        const { startNode } = connections.find(connection => requiredProductId === connection.productId) || {};
+
+        return Number(get(goods, [startNode, requiredProductId], 0)) >= Number(requiredAmount);
       });
+
+      if (!shouldStartProcess.some(item => item === false)) {
+        if (this.state.state === MACHINE_STATE.ready) {
+          this.startProcess(outputProductId, processIndex);
+        }
+      }
     }
   };
 
@@ -221,23 +247,31 @@ class Node extends Component {
     }
   };
 
-  startProcess = (newProductId, processId) => {
+  startProcess = (newProductId, processIndex) => {
     this.setState(
-      prev => ({
-        busy: [...prev.busy].fill(true, processId, processId + 1),
-      }),
+      prev => {
+        const nextProcessIndex = processIndex + 1 === prev.busy.length ? 0 : processIndex + 1;
+        prev.busy[processIndex] = true;
+
+        return {
+          busy: [...prev.busy],
+          processIndex: nextProcessIndex,
+        };
+      },
       () => {
         const { process, id } = this.props;
         const { duration, products } = process;
         const time = timeParser(duration);
 
-        Object.entries(products[newProductId].requirements).forEach(([productId, amount]) => {
+        products[newProductId].requirements.forEach(async ({ productId, amount }) => {
           const inputs = this.getInputsRef();
           const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()));
           const { startNode } = connections.find(connection => productId === connection.productId);
 
-          this.props.processGoodsUpdate({ productId, amount: amount * -1, nodeId: startNode });
+          await this.props.processGoodsUpdate({ productId, amount: amount * -1, nodeId: startNode });
         });
+        //start next process
+        //this.handleGoodsEmit();//TODO: why doesn't it work?
 
         setTimeout(() => {
           const {
@@ -246,12 +280,16 @@ class Node extends Component {
 
           ///update state and process emit event
           const payload = { productId: newProductId, amount: products[newProductId].amount };
+
           this.props.processGoodsUpdate({ ...payload, nodeId: id });
           processEventBus.emit(PROCESS_GOODS_EMIT, payload);
 
-          this.setState(prev => ({
-            busy: [...prev.busy].fill(false, processId, processId + 1),
-          }));
+          this.setState(prev => {
+            prev.busy[processIndex] = false;
+            return {
+              busy: [...prev.busy],
+            };
+          });
 
           this.handleGoodsEmit();
         }, time);

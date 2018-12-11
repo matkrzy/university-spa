@@ -16,7 +16,7 @@ import {
   ConnectionLineActionsContext,
 } from 'app/graph-lib/contexts';
 
-import { MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
+import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../../dictionary';
 
 import {
   connectionRemoveEvent,
@@ -427,30 +427,42 @@ export class GraphSpace extends Component {
         const id = ref.getId();
         const type = ref.getType();
 
-        const newInputs = inputs.map((input, index) => {
-          const item = componentInputs[index];
-          const id = item.getId();
-          const connectionId = item.getConnectionId();
-          const connections = item.getConnections();
+        const newInputs = () => {
+          if (type === NODE_TYPES.marketIn || type === NODE_TYPES.marketOut) {
+            return [];
+          }
 
-          return { ...input, id, connectionId, connections };
-        });
+          return inputs.map((input, index) => {
+            const item = componentInputs[index];
+            const id = item.getId();
+            const connectionId = item.getConnectionId();
+            const connections = item.getConnections();
 
-        const newOutputs = outputs.map((output, index) => {
-          const item = componentOutputs[index];
-          const id = item.getId();
-          const connectionId = item.getConnectionId();
-          const connections = item.getConnections();
+            return { ...input, id, connectionId, connections };
+          });
+        };
 
-          return { ...output, id, connectionId, connections };
-        });
+        const newOutputs = () => {
+          return outputs.map((output, index) => {
+            if (type === NODE_TYPES.marketIn || type === NODE_TYPES.marketOut) {
+              return [];
+            }
+
+            const item = componentOutputs[index];
+            const id = item.getId();
+            const connectionId = item.getConnectionId();
+            const connections = item.getConnections();
+
+            return { ...output, id, connectionId, connections };
+          });
+        };
 
         return {
           ...props,
           id,
           type,
-          inputs: newInputs,
-          outputs: newOutputs,
+          inputs: newInputs(),
+          outputs: newOutputs(),
           draggableProps: {
             ...draggableProps,
             defaultPosition: position,
