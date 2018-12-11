@@ -6,6 +6,7 @@ import { findDOMNode } from 'react-dom';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
+import get from 'lodash/get';
 
 import { withNodeEvents, withNodeActions, withMarket } from 'app/graph-lib/contexts';
 
@@ -58,7 +59,7 @@ class Node extends Component {
       position: props.draggableProps.defaultPosition,
       inputsRef: {},
       outputsRef: {},
-      busy: new Array(props.outputs.length).fill(false),
+      busy: new Array(Object.keys(props.process?.products || {}).length).fill(false),
       ...state,
     };
   }
@@ -91,8 +92,14 @@ class Node extends Component {
         goods,
       } = this.props;
 
-      Object.entries(products).forEach(([product, { requirements }]) => {
-        const shouldStart = Object.entries(requirements || {}).map(([productId, amount]) => goods[productId] >= amount);
+      Object.entries(products || {}).forEach(([product, { requirements = {} }]) => {
+        const shouldStart = Object.entries(requirements || {}).map(([productId, amount]) => {
+          const inputs = this.getInputsRef();
+          const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()));
+          const { startNode } = connections.find(connection => productId === connection.productId) || {};
+
+          return get(goods, [startNode, productId], 0) >= amount;
+        });
 
         shouldStart.forEach((shouldProcessStart, i) => {
           if (shouldProcessStart && !this.state.busy[i] && this.state.state === MACHINE_STATE.ready) {
@@ -132,6 +139,8 @@ class Node extends Component {
         type={type}
         connections={connections}
         ref={ref => this.addRef(id, ref, refName)}
+        goods={this.props.goods}
+        nodeType={this.props.type}
       />
     ));
   };
@@ -218,12 +227,16 @@ class Node extends Component {
         busy: [...prev.busy].fill(true, processId, processId + 1),
       }),
       () => {
-        const { process } = this.props;
+        const { process, id } = this.props;
         const { duration, products } = process;
         const time = timeParser(duration);
 
         Object.entries(products[newProductId].requirements).forEach(([productId, amount]) => {
-          this.props.processGoodsUpdate({ productId, amount: amount * -1 });
+          const inputs = this.getInputsRef();
+          const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()));
+          const { startNode } = connections.find(connection => productId === connection.productId);
+
+          this.props.processGoodsUpdate({ productId, amount: amount * -1, nodeId: startNode });
         });
 
         setTimeout(() => {
@@ -233,7 +246,7 @@ class Node extends Component {
 
           ///update state and process emit event
           const payload = { productId: newProductId, amount: products[newProductId].amount };
-          this.props.processGoodsUpdate(payload);
+          this.props.processGoodsUpdate({ ...payload, nodeId: id });
           processEventBus.emit(PROCESS_GOODS_EMIT, payload);
 
           this.setState(prev => ({
@@ -480,11 +493,20 @@ class Node extends Component {
             <NodeList>{inputs}</NodeList>
 
             {type === NODE_TYPES.buy && (
-              <BuyButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} />
+              <BuyButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} nodeId={this.props.id} />
             )}
 
             {type === NODE_TYPES.sell && (
-              <SellButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} />
+              <>
+                <SellButtonComponent
+                  outputs={this.getOutputsRef()}
+                  inputs={this.getInputsRef()}
+                  nodeId={this.props.id}
+                  startNode={
+                    this.props.nodeActions.getConnectionById(this.getInputsRef()[0]?.getConnectionId())?.startNode
+                  }
+                />
+              </>
             )}
 
             <NodeList>{outputs}</NodeList>

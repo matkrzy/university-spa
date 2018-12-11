@@ -2,10 +2,7 @@ import React from 'react';
 
 /** Object representing a `MarketContext`
  */
-export const MarketContext = React.createContext({
-  state: {},
-  products: {},
-});
+export const MarketContext = React.createContext({ data: null });
 
 export const withMarket = WrappedComponent =>
   React.forwardRef((props, ref) => (

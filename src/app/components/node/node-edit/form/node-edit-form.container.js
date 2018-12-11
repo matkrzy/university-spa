@@ -51,6 +51,8 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
       label,
       canRemove: !!processId,
     })),
+    process: node.props.process,
+    market: market.data,
   };
 };
 

@@ -9,7 +9,6 @@ import { NodeComponent } from '../node/node.component';
 
 import {
   MarketContext,
-  MarketActionsContext,
   CurrentConnectionContext,
   PortsEventsContext,
   NodeActionsContext,
@@ -74,6 +73,7 @@ export class GraphSpace extends Component {
       onRemove: this.handleNodeRemove,
       onUpdate: this.handleNodeUpdate,
       onCreateRef: this.handleNodeRef,
+      getConnectionById: this.getConnectionById,
     };
 
     this.connectionLineActions = {
@@ -85,10 +85,6 @@ export class GraphSpace extends Component {
       onDrag: this.handleNodeDrag,
       onStart: this.handleNodeDragStart,
       onStop: this.handleNodeDragStop,
-    };
-
-    this.marketActions = {
-      //onItemBuy: this.props.onItemBuy,
     };
 
     this.currentConnection = undefined;
@@ -634,39 +630,37 @@ export class GraphSpace extends Component {
         <NodeActionsContext.Provider value={this.nodesActions}>
           <PortsEventsContext.Provider value={this.portsEvents}>
             <MarketContext.Provider value={this.props.market}>
-              <MarketActionsContext.Provider value={this.marketActions}>
-                <CurrentConnectionContext.Provider value={currentConnectionContext}>
-                  <ConnectionLineActionsContext.Provider value={this.connectionLineActions}>
-                    <section id="graphSpace" className={styles.space}>
-                      <ContextMenuComponent
-                        position={this.state.contextMenuPosition}
-                        isOpen={this.state.isContextMenuOpen}
-                        onContextMenu={this.handleContextMenuState}
-                        {...this.state.contextMenuParams}
-                      />
-                      <NodesComponent>{this.state.nodes}</NodesComponent>
-                      <SvgComopnent ref="svgComponent">
-                        {this.state.showConnections &&
-                          Object.entries(this.state.connections).map(
-                            ([key, { start, end, startNode }]) =>
-                              !!start && !!end ? (
-                                <LineComponent
-                                  id={key}
-                                  start={start}
-                                  end={end}
-                                  key={key}
-                                  process={this.getNodeById(startNode).getProcess()}
-                                  machineState={this.getNodeById(startNode).getState()}
-                                  isMachneBusy={this.getNodeById(startNode).getBusy()}
-                                />
-                              ) : null,
-                          )}
-                        {newLine}
-                      </SvgComopnent>
-                    </section>
-                  </ConnectionLineActionsContext.Provider>
-                </CurrentConnectionContext.Provider>
-              </MarketActionsContext.Provider>
+              <CurrentConnectionContext.Provider value={currentConnectionContext}>
+                <ConnectionLineActionsContext.Provider value={this.connectionLineActions}>
+                  <section id="graphSpace" className={styles.space}>
+                    <ContextMenuComponent
+                      position={this.state.contextMenuPosition}
+                      isOpen={this.state.isContextMenuOpen}
+                      onContextMenu={this.handleContextMenuState}
+                      {...this.state.contextMenuParams}
+                    />
+                    <NodesComponent>{this.state.nodes}</NodesComponent>
+                    <SvgComopnent ref="svgComponent">
+                      {this.state.showConnections &&
+                        Object.entries(this.state.connections).map(
+                          ([key, { start, end, startNode }]) =>
+                            !!start && !!end ? (
+                              <LineComponent
+                                id={key}
+                                start={start}
+                                end={end}
+                                key={key}
+                                process={this.getNodeById(startNode).getProcess()}
+                                machineState={this.getNodeById(startNode).getState()}
+                                isMachneBusy={this.getNodeById(startNode).getBusy()}
+                              />
+                            ) : null,
+                        )}
+                      {newLine}
+                    </SvgComopnent>
+                  </section>
+                </ConnectionLineActionsContext.Provider>
+              </CurrentConnectionContext.Provider>
             </MarketContext.Provider>
           </PortsEventsContext.Provider>
         </NodeActionsContext.Provider>

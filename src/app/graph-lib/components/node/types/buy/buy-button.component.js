@@ -5,6 +5,7 @@ import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
+import get from 'lodash/get';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
 import { withMarket } from 'app/graph-lib/contexts';
@@ -40,7 +41,7 @@ export class BuyButton extends Component {
     marketGoodsUpdate({
       payload: { amount: amount * -1, productId },
       callback: () => {
-        this.props.processGoodsUpdate({ amount: amount, productId });
+        this.props.processGoodsUpdate({ amount: amount, productId, nodeId: this.props.nodeId });
         processGoodsEmit({ amount: amount, productId });
       },
     });
@@ -50,8 +51,6 @@ export class BuyButton extends Component {
 
   checkProductState = id => {
     const { market } = this.props;
-
-    console.log(market, id);
 
     return !!market[id].amount;
   };
@@ -68,7 +67,7 @@ export class BuyButton extends Component {
       <Form onSubmit={this.onSubmit} initialValues={{ amount: 1 }} ref={this.formRef}>
         {({ handleSubmit, invalid }) => (
           <form onSubmit={handleSubmit} className={styles.form}>
-            <div>state: {this.props.goods[this.getProductId()] || 0}</div>
+            {/*<div>state: {get(this.props.goods, [this.props.nodeId, this.getProductId()], 0)}</div>*/}
             <Field component={TextFieldComponent} name="amount" className={styles.input} />
             <Button
               disabled={!this.canBuy()}
