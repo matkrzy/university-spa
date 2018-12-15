@@ -32,13 +32,16 @@
   font-weight: 400;
 }
 
-.close{
+.close {
   cursor: pointer;
 }
 
 :global {
   .sidebar__section {
     margin: 10px 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 10px;
 
     .section__title {
       font-weight: 400;

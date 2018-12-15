@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 
-import { GraphSpace } from '../../../graph';
+import { SpaceComponent } from 'app/graph/space/space.component';
 
 import { NodeEditModalComponent } from '../../node/node-edit/node-edit-modal.component';
 import { SidebarContainer, DotSpinnerComponent } from '../../shared';
@@ -67,7 +67,7 @@ export class ProcessComponent extends Component {
     return (
       <Fragment>
         <SidebarContainer name="nodeDetails" component={NodeSidebarDetailsContainer} />
-        <GraphSpace
+        <SpaceComponent
           connections={process.connections}
           nodes={process.nodes}
           market={market}

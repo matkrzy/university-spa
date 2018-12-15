@@ -4,16 +4,16 @@ import Tooltip from 'rc-tooltip';
 import { compose } from 'redux';
 import get from 'lodash/get';
 
-import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph/contexts';
+import { withCurrentConnection, withPortEvents, withNodeActions } from '../../contexts';
 
-import { NODE_INPUT, NODE_TYPES } from 'app/graph/dictionary';
+import { NODE_INPUT, NODE_TYPES } from '../../dictionary';
 
-import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
+import { connectionsEventBus } from '../../../events/connections/connectionsEventBus';
 import {
   CONNECTION_REMOVE,
   CONNECTION_ADD,
   CONNECTION_CALCULATE,
-} from 'app/events/connections/connections.action-types';
+} from '../../../events/connections/connections.action-types';
 
 import styles from './node-list-item.module.scss';
 

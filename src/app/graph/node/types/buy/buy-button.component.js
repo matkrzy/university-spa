@@ -6,14 +6,14 @@ import { Form, Field } from 'react-final-form';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 
-import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarket } from 'app/graph/contexts';
+import { TextFieldComponent, Button } from '../../../../components/shared';
+import { withMarket } from '../../../contexts';
 
-import { marketGoodsUpdate } from 'app/socket/market/actions';
+import { marketGoodsUpdate } from '../../../../socket/market/actions';
 
-import { processGoodsUpdate } from 'app/redux/process/process.actions';
+import { processGoodsUpdate } from '../../../../redux/process/process.actions';
 
-import { processGoodsEmit } from 'app/events/process/process.actions';
+import { processGoodsEmit } from '../../../../events/process/process.actions';
 
 import styles from './buy-button.module.scss';
 

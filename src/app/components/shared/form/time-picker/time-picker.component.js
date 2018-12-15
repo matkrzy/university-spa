@@ -69,11 +69,7 @@ export class TimePickerComponent extends Component {
 
     return (
       <label className={classNames('form-control', this.props.className)}>
-        {!!label && (
-          <span className="label">
-            {label} ({format})
-          </span>
-        )}
+        {!!label && <span className="label">{label} (mm:ss)</span>}
         <TimePicker
           defaultValue={this.getValue()}
           open={this.state.open}

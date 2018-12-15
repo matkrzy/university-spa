@@ -8,25 +8,25 @@ import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import get from 'lodash/get';
 
-import { withNodeEvents, withNodeActions, withMarket } from 'app/graph/contexts';
+import { withNodeEvents, withNodeActions, withMarket } from '../contexts';
 
-import { timeParser } from 'app/utils/time-parser.util';
+import { timeParser } from '../../utils/time-parser.util';
 
-import { NODE_TYPES, MACHINE_STATE, NODE_INPUT, NODE_OUTPUT } from '../../dictionary';
+import { NODE_TYPES, MACHINE_STATE, NODE_INPUT, NODE_OUTPUT } from '../dictionary';
 
 import { NodeList } from '../list/node-list.component';
 import { BuyButtonComponent, SellButtonComponent } from './types';
 
 import { NodeTitleComponent } from './title/node-title.component';
-import { NodeListItemComponent } from 'app/graph/components/list/item/node-list-item.component';
+import { NodeListItemComponent } from '../list/item/node-list-item.component';
 
-import { processEventBus } from 'app/events/process/processEventBus';
-import { PROCESS_GOODS_EMIT } from 'app/events/process/process.action-types';
+import { processEventBus } from '../../events/process/processEventBus';
+import { PROCESS_GOODS_EMIT } from '../../events/process/process.action-types';
 
-import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
-import { CONNECTION_REMOVE, CONNECTION_ADD } from 'app/events/connections/connections.action-types';
+import { connectionsEventBus } from '../../events/connections/connectionsEventBus';
+import { CONNECTION_REMOVE, CONNECTION_ADD } from '../../events/connections/connections.action-types';
 
-import { processGoodsUpdate } from 'app/redux/process/process.actions';
+import { processGoodsUpdate } from '../../redux/process/process.actions';
 
 import styles from './node.module.scss';
 

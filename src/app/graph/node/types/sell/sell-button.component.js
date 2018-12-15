@@ -7,11 +7,11 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import get from 'lodash/get';
 
-import { TextFieldComponent, Button } from 'app/components/shared';
+import { TextFieldComponent, Button } from '../../../../components/shared';
 
-import { processGoodsUpdate } from 'app/redux/process/process.actions';
+import { processGoodsUpdate } from '../../../../redux/process/process.actions';
 
-import { marketGoodsUpdate } from 'app/socket/market/actions';
+import { marketGoodsUpdate } from '../../../../socket/market/actions';
 
 import styles from './sell-button.module.scss';
 

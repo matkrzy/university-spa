@@ -14,19 +14,19 @@ import {
   NodeActionsContext,
   NodeEventsContext,
   ConnectionLineActionsContext,
-} from 'app/graph/contexts';
+} from '../contexts';
 
-import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../../dictionary';
+import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../dictionary';
 
 import {
   connectionRemoveEvent,
   connectionAddEvent,
   connectionCalculateEvent,
-} from 'app/events/connections/connections.actions';
+} from '../../events/connections/connections.actions';
 
-import { spaceEventBus } from 'app/events/space/spaceEventBus';
-import { SPACE_MODEL_SAVE } from 'app/events/space/space.action-types';
-import { spaceModelSaveEvent } from 'app/events/space/space.actions';
+import { spaceEventBus } from '../../events/space/spaceEventBus';
+import { SPACE_MODEL_SAVE } from '../../events/space/space.action-types';
+import { spaceModelSaveEvent } from '../../events/space/space.actions';
 
 import styles from './space.module.scss';
 
@@ -35,7 +35,7 @@ const uuid = require('uuid/v4');
 /** Class representing a graph space
  * @extends Component
  */
-export class GraphSpace extends Component {
+export class SpaceComponent extends Component {
   /**
    * It will prepare `GraphSpace` state based on passed props, also create `spaceContext` and set-up custom events
    *

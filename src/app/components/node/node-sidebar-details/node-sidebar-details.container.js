@@ -3,7 +3,7 @@ import { compose } from 'redux';
 
 import { NodeSidebarDerails } from './node-sidebar-details.component';
 
-const mapStateToProps = (state, { params: node }) => {
+const mapStateToProps = ({ market: { data: market } }, { params: node }) => {
   const inputs = node
     .getInputsRef()
     .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
@@ -22,7 +22,7 @@ const mapStateToProps = (state, { params: node }) => {
       id,
     }));
 
-  return { inputs, outputs, process: node.props.process };
+  return { inputs, outputs, process: node.props.process, market };
 };
 
 const mapDispatchToProps = {};

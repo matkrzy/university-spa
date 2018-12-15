@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { faSpinner, faPauseCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { NODE_TYPES, MACHINE_STATE } from 'app/graph/dictionary';
+import { NODE_TYPES, MACHINE_STATE } from '../../dictionary';
 
 export class NodeTitleComponent extends Component {
   render() {
