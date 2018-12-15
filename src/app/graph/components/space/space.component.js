@@ -14,7 +14,7 @@ import {
   NodeActionsContext,
   NodeEventsContext,
   ConnectionLineActionsContext,
-} from 'app/graph-lib/contexts';
+} from 'app/graph/contexts';
 
 import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../../dictionary';
 

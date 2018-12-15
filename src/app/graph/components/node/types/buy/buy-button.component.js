@@ -7,7 +7,7 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarket } from 'app/graph-lib/contexts';
+import { withMarket } from 'app/graph/contexts';
 
 import { marketGoodsUpdate } from 'app/socket/market/actions';
 

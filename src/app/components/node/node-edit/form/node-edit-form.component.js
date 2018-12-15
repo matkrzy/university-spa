@@ -20,7 +20,7 @@ import { validateMaxConnections } from 'app/utils/validators';
 
 import { NodeEditCustomSelectOption } from './custom-select-option/node-edit-custom-select-option';
 
-import { NODE_TYPES } from 'app/graph-lib';
+import { NODE_TYPES } from 'app/graph';
 
 import styles from './node-edit-form.module.scss';
 

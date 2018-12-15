@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import isEqual from 'lodash/isEqual';
 import get from 'lodash/get';
 
-import { withNodeEvents, withNodeActions, withMarket } from 'app/graph-lib/contexts';
+import { withNodeEvents, withNodeActions, withMarket } from 'app/graph/contexts';
 
 import { timeParser } from 'app/utils/time-parser.util';
 
@@ -18,7 +18,7 @@ import { NodeList } from '../list/node-list.component';
 import { BuyButtonComponent, SellButtonComponent } from './types';
 
 import { NodeTitleComponent } from './title/node-title.component';
-import { NodeListItemComponent } from 'app/graph-lib/components/list/item/node-list-item.component';
+import { NodeListItemComponent } from 'app/graph/components/list/item/node-list-item.component';
 
 import { processEventBus } from 'app/events/process/processEventBus';
 import { PROCESS_GOODS_EMIT } from 'app/events/process/process.action-types';

@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 
-import { GraphSpace } from '../../../graph-lib';
+import { GraphSpace } from '../../../graph';
 
 import { NodeEditModalComponent } from '../../node/node-edit/node-edit-modal.component';
 import { SidebarContainer, DotSpinnerComponent } from '../../shared';

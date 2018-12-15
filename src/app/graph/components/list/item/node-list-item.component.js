@@ -4,9 +4,9 @@ import Tooltip from 'rc-tooltip';
 import { compose } from 'redux';
 import get from 'lodash/get';
 
-import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph-lib/contexts';
+import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph/contexts';
 
-import { NODE_INPUT, NODE_TYPES } from 'app/graph-lib/dictionary';
+import { NODE_INPUT, NODE_TYPES } from 'app/graph/dictionary';
 
 import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
 import {

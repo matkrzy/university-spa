@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 
-import { withConnectionLineActions } from 'app/graph-lib/contexts';
-import { NODE_INPUT, NODE_OUTPUT } from 'app/graph-lib/dictionary';
+import { withConnectionLineActions } from 'app/graph/contexts';
+import { NODE_INPUT, NODE_OUTPUT } from 'app/graph/dictionary';
 
 //import { timeParser } from 'app/utils/time-parser.util';
 
