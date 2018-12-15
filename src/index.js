@@ -16,7 +16,6 @@ import { errorsMiddleware } from 'app/middlewares/errors/errors.middleware';
 import { modalReducer as modals } from 'app/redux/modal/modal.reducer';
 import { sidebarReducer as sidebars } from 'app/redux/sidebar/sidebar.reducer';
 import { marketReducer as market } from 'app/redux/market/market.reducer';
-//import { marketLocalReducer as marketLocal } from 'app/redux/market-local/market-local.reducer';
 import { processesReducer as processes } from 'app/redux/processes/processes.reducer';
 import { processReducer as process } from 'app/redux/process/process.reducer';
 import { notificationsReducer as notifications } from 'app/redux/notifications/notifications.reducer';

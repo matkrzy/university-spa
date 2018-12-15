@@ -5,7 +5,7 @@ import { compose } from 'redux';
 
 import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph-lib/contexts';
 
-import { NODE_INPUT } from 'app/graph-lib/dictionary';
+import { NODE_INPUT, NODE_TYPES } from 'app/graph-lib/dictionary';
 
 import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
 import {
@@ -70,6 +70,8 @@ class NodeListItem extends Component {
 
   getProductId = () => this.props.productId;
 
+  getNodeId = () => this.props.nodeId;
+
   /**
    * Helper for calculation connections for specific node based on node ID and type of item
    * @param {updateConnectionEvent} e - custom update connection event created in `GraphSpace`
@@ -130,12 +132,20 @@ class NodeListItem extends Component {
    * @return {*}
    */
   renderElement = () => {
+    const { nodeType, type } = this.props;
+    const showAmount = nodeType === NODE_TYPES.step;
+
     const indicatorClassNames = classNames(styles[this.props.type], styles.indicator, {
       [styles.disabled]:
         this.state.connections >= this.props.maxConnections ||
         this.props.disabled ||
         (this.props.currentConnection && this.props.currentConnection.productId !== this.props.productId),
     });
+
+    const connection = this.props.nodeActions.getConnectionById(this.props.connectionId);
+    const nodeId = connection && (type === NODE_INPUT ? connection.startNode : this.props.nodeId);
+
+    const amount = nodeId && this.props.goods[nodeId] && this.props.goods[nodeId][this.props.productId];
 
     const itemClassNames = classNames(styles.item, styles[`item--${this.props.type}`]);
 
@@ -147,10 +157,12 @@ class NodeListItem extends Component {
           onMouseUp={this.handleMouseUp}
           id={this.props.id}
           data-id={this.props.id}
-          data-type={this.props.type}
+          data-type={type}
         />
         <span className={styles.label}>
-          <span>{this.props.label}</span>
+          <span>
+            {this.props.label} {showAmount && `(${amount || 0})`}
+          </span>
         </span>
       </li>
     );

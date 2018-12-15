@@ -229,13 +229,52 @@ export class NodeEditForm extends Component {
             )}
 
             {type === NODE_TYPES.step && (
-              <section className="form-section">
-                <div className="form-section__title">Process</div>
-                <div className="form-section__body">
-                  <Field component={TimePickerComponent} name="process.duration" label="Duration of process" />
-                  <Field component={TimePickerComponent} name="process.setup" label="Duration of setup" />
-                </div>
-              </section>
+              <>
+                <section className="form-section">
+                  <div className="form-section__title">Process</div>
+                  <div className="form-section__body">
+                    <Field component={TimePickerComponent} name="process.duration" label="Duration of process" />
+                    <Field component={TimePickerComponent} name="process.setup" label="Duration of setup" />
+                  </div>
+                </section>
+
+                <section className="form-section">
+                  <div className="form-section__title">Requirements</div>
+                  <div className="form-section__body">
+                    {Object.entries(this.props.process.products).map(([key, value]) => {
+                      const outputProject = this.props.market[key];
+                      const { requirements } = value;
+
+                      return (
+                        <div>
+                          <div>{outputProject.label}</div>
+                          <div>
+                            <div>Requirements</div>
+                            {requirements &&
+                              Object.entries(requirements).map(([key, amount]) => {
+                                const marketProduct = this.props.market[key];
+
+                                return (
+                                  <div>
+                                    {marketProduct.label} {amount}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/*{Object.keys(this.props.process.products).map(product => {*/}
+                    {/*const selectedProduct = this.props.market[product];*/}
+
+                    {/*console.log(this.props.process);*/}
+
+                    {/*return <div>{selectedProduct.label}</div>;*/}
+                    {/*})}*/}
+                  </div>
+                </section>
+              </>
             )}
 
             <Button className={styles.button} disabled={invalid} type="submit">

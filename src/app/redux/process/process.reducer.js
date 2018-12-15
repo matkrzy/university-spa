@@ -1,3 +1,5 @@
+import get from 'lodash/get';
+
 import { PROCESS_UPDATE, PROCESS_GOODS_UPDATE } from './process.action-types';
 
 const initState = {
@@ -13,11 +15,19 @@ export const processReducer = (state = initState, { type, payload }) => {
         data: payload.data,
       };
     case PROCESS_GOODS_UPDATE:
+      const nodeData = get(state.goods, payload.nodeId, {});
+      const product = get(nodeData, payload.productId, 0);
+
+      const newState = {
+        ...nodeData,
+        [payload.productId]: Number(product) + Number(payload.amount),
+      };
+
       return {
         ...state,
         goods: {
           ...state.goods,
-          [payload.productId]: (Number(state.goods[payload.productId]) || 0) + Number(payload.amount),
+          [payload.nodeId]: newState,
         },
       };
     default:

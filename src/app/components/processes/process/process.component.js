@@ -21,10 +21,6 @@ export class ProcessComponent extends Component {
   constructor(props) {
     super(props);
     this.space = React.createRef();
-
-    this.state = {
-      model: undefined,
-    };
   }
 
   componentDidMount() {
