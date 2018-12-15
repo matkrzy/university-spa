@@ -39,10 +39,11 @@ export class BuyButton extends Component {
 
     marketGoodsUpdate({
       payload: { amount: amount * -1, productId },
+      callback: async () => {
+        await this.props.processGoodsUpdate({ amount: amount, productId, nodeId: this.props.nodeId });
+        await processGoodsEmit({ amount: amount, productId });
+      },
     });
-
-    await this.props.processGoodsUpdate({ amount: amount, productId, nodeId: this.props.nodeId });
-    await processGoodsEmit({ amount: amount, productId });
 
     this.formRef.current.form.reset();
   };

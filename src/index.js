@@ -8,6 +8,7 @@ import createHistory from 'history/createBrowserHistory';
 import { AppComponent } from './app/app.component';
 import { devToolsEnhancer } from 'redux-devtools-extension/logOnlyInProduction';
 import { apiMiddleware } from 'redux-api-middleware';
+import createSagaMiddleware from 'redux-saga';
 
 import { endpointMiddleware } from 'app/middlewares/endpoint/endpoint.middleware';
 import { bodyMiddleware } from 'app/middlewares/body/body.middleware';
@@ -20,6 +21,8 @@ import { processesReducer as processes } from 'app/redux/processes/processes.red
 import { processReducer as process } from 'app/redux/process/process.reducer';
 import { notificationsReducer as notifications } from 'app/redux/notifications/notifications.reducer';
 
+import { appSaga } from 'app/saga/sagas';
+
 const reducers = combineReducers({
   modals,
   sidebars,
@@ -31,6 +34,8 @@ const reducers = combineReducers({
 
 const history = createHistory();
 
+const sagaMiddleware = createSagaMiddleware();
+
 const middlewares = [
   routerMiddleware(history),
   thunkMiddleware,
@@ -38,6 +43,7 @@ const middlewares = [
   endpointMiddleware,
   apiMiddleware,
   errorsMiddleware,
+  sagaMiddleware,
 ];
 
 const store = createStore(
@@ -47,6 +53,8 @@ const store = createStore(
     devToolsEnhancer({}),
   ),
 );
+
+sagaMiddleware.run(appSaga);
 
 const render = () => {
   ReactDOM.render(

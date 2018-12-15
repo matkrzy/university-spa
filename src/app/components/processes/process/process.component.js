@@ -39,6 +39,7 @@ export class ProcessComponent extends Component {
     socket.removeListener(MARKET_UPDATE, this.props.updateMarket);
 
     this.props.processUpdate(null);
+    this.props.processGoodsReset();
   }
 
   /**

@@ -63,6 +63,8 @@ class Node extends Component {
       ...state,
       processIndex: 0,
     };
+
+    this.timers = new Array(this.state.busy.length).fill(null);
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -92,7 +94,7 @@ class Node extends Component {
     processEventBus.on(PROCESS_GOODS_EMIT, this.handleGoodsEmit);
   }
 
-  handleGoodsEmit = payload => {
+  handleGoodsEmit = () => {
     const { type } = this.props;
 
     if (type === NODE_TYPES.step) {
@@ -140,6 +142,10 @@ class Node extends Component {
     connectionsEventBus.removeListener(CONNECTION_ADD, this.handleConnectionsChange);
     connectionsEventBus.removeListener(CONNECTION_REMOVE, this.handleConnectionsChange);
     processEventBus.removeListener(PROCESS_GOODS_EMIT, this.handleGoodsEmit);
+
+    this.timers.map(timer => {
+      clearTimeout(timer);
+    });
   }
 
   handleConnectionsChange = payload => {
@@ -273,7 +279,7 @@ class Node extends Component {
         //start next process
         //this.handleGoodsEmit();//TODO: why doesn't it work?
 
-        setTimeout(() => {
+        this.timers[processIndex] = setTimeout(() => {
           const {
             process: { products },
           } = this.props;

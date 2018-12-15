@@ -1,10 +1,12 @@
 import get from 'lodash/get';
 
-import { PROCESS_UPDATE, PROCESS_GOODS_UPDATE } from './process.action-types';
+import { PROCESS_UPDATE, PROCESS_GOODS_UPDATE, PROCESS_GOODS_RESET } from './process.action-types';
+
+import { PROCESS_GOODS_STATE_KEY } from 'app/saga/process/process.saga';
 
 const initState = {
   data: null,
-  goods: {},
+  goods: JSON.parse(localStorage.getItem(PROCESS_GOODS_STATE_KEY)) || {},
 };
 
 export const processReducer = (state = initState, { type, payload }) => {
@@ -29,6 +31,11 @@ export const processReducer = (state = initState, { type, payload }) => {
           ...state.goods,
           [payload.nodeId]: newState,
         },
+      };
+    case PROCESS_GOODS_RESET:
+      return {
+        ...state,
+        goods: {},
       };
     default:
       return state;
