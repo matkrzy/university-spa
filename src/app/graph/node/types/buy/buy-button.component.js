@@ -5,16 +5,15 @@ import Tooltip from 'rc-tooltip';
 import { Form, Field } from 'react-final-form';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
-import get from 'lodash/get';
 
-import { TextFieldComponent, Button } from 'app/components/shared';
-import { withMarket } from 'app/graph-lib/contexts';
+import { TextFieldComponent, Button } from '../../../../components/shared';
+import { withMarket } from '../../../contexts';
 
-import { marketGoodsUpdate } from 'app/socket/market/actions';
+import { marketGoodsUpdate } from '../../../../socket/market/actions';
 
-import { processGoodsUpdate } from 'app/redux/process/process.actions';
+import { processGoodsUpdate } from '../../../../redux/process/process.actions';
 
-import { processGoodsEmit } from 'app/events/process/process.actions';
+import { processGoodsEmit } from '../../../../events/process/process.actions';
 
 import styles from './buy-button.module.scss';
 
@@ -31,7 +30,7 @@ export class BuyButton extends Component {
 
   getProductId = () => this.props.inputs[0]?.getProductId();
 
-  onSubmit = ({ amount }) => {
+  onSubmit = async ({ amount }) => {
     if (!this.canBuy()) {
       return;
     }
@@ -40,9 +39,9 @@ export class BuyButton extends Component {
 
     marketGoodsUpdate({
       payload: { amount: amount * -1, productId },
-      callback: () => {
-        this.props.processGoodsUpdate({ amount: amount, productId, nodeId: this.props.nodeId });
-        processGoodsEmit({ amount: amount, productId });
+      callback: async () => {
+        await this.props.processGoodsUpdate({ amount: amount, productId, nodeId: this.props.nodeId });
+        await processGoodsEmit({ amount: amount, productId });
       },
     });
 

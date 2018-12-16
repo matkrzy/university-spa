@@ -14,19 +14,19 @@ import {
   NodeActionsContext,
   NodeEventsContext,
   ConnectionLineActionsContext,
-} from 'app/graph-lib/contexts';
+} from '../contexts';
 
-import { MOUSE_MOVE, MOUSE_UP } from '../../dictionary';
+import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../dictionary';
 
 import {
   connectionRemoveEvent,
   connectionAddEvent,
   connectionCalculateEvent,
-} from 'app/events/connections/connections.actions';
+} from '../../events/connections/connections.actions';
 
-import { spaceEventBus } from 'app/events/space/spaceEventBus';
-import { SPACE_MODEL_SAVE } from 'app/events/space/space.action-types';
-import { spaceModelSaveEvent } from 'app/events/space/space.actions';
+import { spaceEventBus } from '../../events/space/spaceEventBus';
+import { SPACE_MODEL_SAVE } from '../../events/space/space.action-types';
+import { spaceModelSaveEvent } from '../../events/space/space.actions';
 
 import styles from './space.module.scss';
 
@@ -35,7 +35,7 @@ const uuid = require('uuid/v4');
 /** Class representing a graph space
  * @extends Component
  */
-export class GraphSpace extends Component {
+export class SpaceComponent extends Component {
   /**
    * It will prepare `GraphSpace` state based on passed props, also create `spaceContext` and set-up custom events
    *
@@ -427,30 +427,42 @@ export class GraphSpace extends Component {
         const id = ref.getId();
         const type = ref.getType();
 
-        const newInputs = inputs.map((input, index) => {
-          const item = componentInputs[index];
-          const id = item.getId();
-          const connectionId = item.getConnectionId();
-          const connections = item.getConnections();
+        const newInputs = () => {
+          if (type === NODE_TYPES.marketIn || type === NODE_TYPES.marketOut) {
+            return [];
+          }
 
-          return { ...input, id, connectionId, connections };
-        });
+          return inputs.map((input, index) => {
+            const item = componentInputs[index];
+            const id = item.getId();
+            const connectionId = item.getConnectionId();
+            const connections = item.getConnections();
 
-        const newOutputs = outputs.map((output, index) => {
-          const item = componentOutputs[index];
-          const id = item.getId();
-          const connectionId = item.getConnectionId();
-          const connections = item.getConnections();
+            return { ...input, id, connectionId, connections };
+          });
+        };
 
-          return { ...output, id, connectionId, connections };
-        });
+        const newOutputs = () => {
+          return outputs.map((output, index) => {
+            if (type === NODE_TYPES.marketIn || type === NODE_TYPES.marketOut) {
+              return [];
+            }
+
+            const item = componentOutputs[index];
+            const id = item.getId();
+            const connectionId = item.getConnectionId();
+            const connections = item.getConnections();
+
+            return { ...output, id, connectionId, connections };
+          });
+        };
 
         return {
           ...props,
           id,
           type,
-          inputs: newInputs,
-          outputs: newOutputs,
+          inputs: newInputs(),
+          outputs: newOutputs(),
           draggableProps: {
             ...draggableProps,
             defaultPosition: position,

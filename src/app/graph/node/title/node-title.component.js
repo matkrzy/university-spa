@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faPauseCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { NODE_TYPES, MACHINE_STATE } from 'app/graph-lib/dictionary';
+import { NODE_TYPES, MACHINE_STATE } from '../../dictionary';
 
 export class NodeTitleComponent extends Component {
   render() {
@@ -35,7 +35,9 @@ export class NodeTitleComponent extends Component {
                   [<FontAwesomeIcon icon={faSpinner} spin size="1x" />]
                 </>
               ) : (
-                '[]'
+                <>
+                  [<FontAwesomeIcon icon={faPauseCircle} size="1x" />]
+                </>
               )}
             </span>
           ))}

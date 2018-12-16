@@ -2,17 +2,18 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import Tooltip from 'rc-tooltip';
 import { compose } from 'redux';
+import get from 'lodash/get';
 
-import { withCurrentConnection, withPortEvents, withNodeActions } from 'app/graph-lib/contexts';
+import { withCurrentConnection, withPortEvents, withNodeActions } from '../../contexts';
 
-import { NODE_INPUT, NODE_TYPES } from 'app/graph-lib/dictionary';
+import { NODE_INPUT, NODE_TYPES } from '../../dictionary';
 
-import { connectionsEventBus } from 'app/events/connections/connectionsEventBus';
+import { connectionsEventBus } from '../../../events/connections/connectionsEventBus';
 import {
   CONNECTION_REMOVE,
   CONNECTION_ADD,
   CONNECTION_CALCULATE,
-} from 'app/events/connections/connections.action-types';
+} from '../../../events/connections/connections.action-types';
 
 import styles from './node-list-item.module.scss';
 
@@ -143,9 +144,8 @@ class NodeListItem extends Component {
     });
 
     const connection = this.props.nodeActions.getConnectionById(this.props.connectionId);
-    const nodeId = connection && (type === NODE_INPUT ? connection.startNode : this.props.nodeId);
-
-    const amount = nodeId && this.props.goods[nodeId] && this.props.goods[nodeId][this.props.productId];
+    const nodeId = type === NODE_INPUT && connection ? connection.startNode : this.props.nodeId;
+    const amount = get(this.props.goods, [nodeId, this.props.productId], 0);
 
     const itemClassNames = classNames(styles.item, styles[`item--${this.props.type}`]);
 
@@ -161,7 +161,7 @@ class NodeListItem extends Component {
         />
         <span className={styles.label}>
           <span>
-            {this.props.label} {showAmount && `(${amount || 0})`}
+            {this.props.label} {showAmount && `(${amount})`}
           </span>
         </span>
       </li>

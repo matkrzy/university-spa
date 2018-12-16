@@ -17,9 +17,8 @@
   padding: 10px;
   margin: 20px 0;
   background: #fff;
-  //max-height: calc(100% - 50px);
-  height: auto;
-  overflow: hidden;
+  overflow: auto;
+  height: 90vh;
 }
 
 .title {
@@ -28,6 +27,4 @@
 }
 
 .body {
-  height: 100%;
-  overflow-y: scroll;
 }

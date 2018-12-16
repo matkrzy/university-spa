@@ -4,7 +4,7 @@ import { compose } from 'redux';
 import { modalToggle } from 'app/redux/modal/modal.actions';
 import { sidebarToggle } from 'app/redux/sidebar/sidebar.actions';
 import { updateMarket } from 'app/redux/market/market.actions';
-import { processUpdate } from 'app/redux/process/process.actions';
+import { processUpdate, processGoodsReset } from 'app/redux/process/process.actions';
 
 import { ProcessComponent } from './process.component';
 
@@ -18,6 +18,7 @@ const mapDispatchToProps = {
   sidebarToggle,
   updateMarket,
   processUpdate,
+  processGoodsReset,
 };
 
 export const ProcessContainer = compose(

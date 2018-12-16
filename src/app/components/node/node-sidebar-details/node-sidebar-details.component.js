@@ -56,7 +56,48 @@ export class NodeSidebarDerails extends Component {
     );
   };
 
+  renderRequirements = () => {
+    const { process, market } = this.props;
+    const { products } = process;
+
+    return (
+      <div className="sidebar__section ">
+        <div className="section__title">Requirements</div>
+        <div className="section__body">
+          {Object.entries(products || {}).map(([key, value], index) => {
+            const outputProduct = market[key];
+            const { requirements, amount } = value;
+
+            return (
+              <div className="sidebar__section " key={index}>
+                <div className="section__title">
+                  {'<- '}
+                  {outputProduct.label} : {amount}
+                </div>
+                <div className="section__body">
+                  {requirements.map(({ productId, amount }, index) => {
+                    const requiredProduct = market[productId];
+
+                    return (
+                      <div key={index}>
+                        {'-> '}
+                        {requiredProduct.label}: {amount}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   render() {
+    const { process } = this.props;
+    const { duration, setup, products } = process;
+
     return (
       <>
         <div className={styles.sectionTitle}>Node details</div>
@@ -67,16 +108,18 @@ export class NodeSidebarDerails extends Component {
           <div className="section__body">
             <div>
               <strong>Process time: </strong>
-              {this.props.process.duration || '00:00'}
-              (h)
+              {duration || '00:00'}
+              (mm:ss)
             </div>
             <div>
               <strong>Setup time: </strong>
-              {this.props.process.setup || '00:00'}
-              (h)
+              {setup || '00:00'}
+              (mm:ss)
             </div>
           </div>
         </div>
+
+        {!!products && this.renderRequirements()}
       </>
     );
   }
