@@ -25,9 +25,9 @@ export class ProcessesListComponent extends Component {
       <div className={styles.container}>
         <h2>Select process</h2>
         <ul className={styles.list}>
-          {processes.map(({ name, id }) => (
+          {processes.map(({ label, id }) => (
             <li key={id}>
-              <Link to={`${parentPath}/${id}`}>{name}</Link>
+              <Link to={`${parentPath}/${id}`}>{label}</Link>
             </li>
           ))}
         </ul>

@@ -662,9 +662,9 @@ export class SpaceComponent extends Component {
                                 start={start}
                                 end={end}
                                 key={key}
-                                process={this.getNodeById(startNode).getProcess()}
-                                machineState={this.getNodeById(startNode).getState()}
-                                isMachneBusy={this.getNodeById(startNode).getBusy()}
+                                //process={this.getNodeById(startNode).getProcess()}
+                                //machineState={this.getNodeById(startNode).getState()}
+                                //isMachneBusy={this.getNodeById(startNode).getBusy()}
                               />
                             ) : null,
                         )}

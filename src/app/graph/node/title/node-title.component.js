@@ -6,11 +6,11 @@ import { NODE_TYPES, MACHINE_STATE } from '../../dictionary';
 
 export class NodeTitleComponent extends Component {
   render() {
-    const { title, state, className, process, type, busy } = this.props;
+    const { label, state, className, process, type, busy } = this.props;
 
     return (
       <div className={className}>
-        {title}
+        {label}
         {(() => {
           if (!process.setup && NODE_TYPES.step === type) {
             return '(fix config!)';

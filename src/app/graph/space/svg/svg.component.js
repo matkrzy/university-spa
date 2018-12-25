@@ -7,7 +7,7 @@ import style from './svg.module.scss';
  */
 export class SvgComopnent extends Component {
   static defaultProps = {
-    width: '100%',
+    width: 'auto',
     height: '100%',
   };
 

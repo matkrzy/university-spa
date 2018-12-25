@@ -13,7 +13,7 @@ export const NODE_TYPES = {
   marketIn: 'marketIn',
   buy: 'buy',
   sell: 'sell',
-  step: 'process_step',
+  step: 'processStep', //TODO change it to processStep
 };
 
 //**MACHINE STATE

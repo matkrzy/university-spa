@@ -69,12 +69,12 @@ export class ProcessComponent extends Component {
         <SidebarContainer name="nodeDetails" component={NodeSidebarDetailsContainer} />
         <SpaceComponent
           connections={process.connections}
-          nodes={process.nodes}
           market={market}
-          ref={this.space}
-          onNodeEdit={this.handleNodeEdit}
+          nodes={process.nodes}
           onNodeDoubleClick={this.handleNodeDoubleClick}
+          onNodeEdit={this.handleNodeEdit}
           onSpaceModelSave={processUpdate(id)}
+          ref={this.space}
         />
         <NodeEditModalComponent />
         <AddLocalProductModalComponent />

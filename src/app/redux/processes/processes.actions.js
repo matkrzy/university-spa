@@ -13,7 +13,3 @@ export const processesListFetch = () => ({
     method: 'GET',
   },
 });
-//
-//types: [types.UPDATE_PROFILE_REQUEST, types.UPDATE_PROFILE_SUCCESS, types.UPDATE_PROFILE_FAILURE],
-//  endpoint: `/users/me/${section}`,
-//  method: 'PATCH',
