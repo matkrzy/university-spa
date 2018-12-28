@@ -108,7 +108,7 @@ export class NodeEditForm extends Component {
     const decorators = () => {
       const arrayOfDecorators = [];
 
-      if (NODE_TYPES.buy === type) {
+      if (NODE_TYPES.buy === type || NODE_TYPES.sell === type) {
         arrayOfDecorators.push(this.updateValues);
       }
 
@@ -137,13 +137,7 @@ export class NodeEditForm extends Component {
           },
         }) => (
           <form onSubmit={handleSubmit} autoComplete="off">
-            <Field
-              component={TextFieldComponent}
-              name="label"
-              placeholder="enter node title"
-              label="Node title"
-              id="test"
-            />
+            <Field component={TextFieldComponent} name="label" placeholder="enter node title" label="Node title" />
             {type !== NODE_TYPES.marketOut && (
               <section className="form-section">
                 <div className="form-section__title">Inputs</div>
@@ -238,7 +232,7 @@ export class NodeEditForm extends Component {
                               asyncErrors
                               disabled={type === NODE_TYPES.marketOut}
                             />
-                            {type === NODE_TYPES.buy || type === NODE_TYPES.marketOut ? (
+                            {type === NODE_TYPES.buy || type === NODE_TYPES.sell || type === NODE_TYPES.marketOut ? (
                               <Field
                                 label="Product"
                                 component={SelectFieldComponent}

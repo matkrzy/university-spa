@@ -14,36 +14,38 @@ export class NodeTitleComponent extends Component {
     return (
       <div className={className}>
         {label}
-        {(() => {
-          if (!process.setup && NODE_TYPES.step === type) {
-            return (
-              <Tooltip placement="bottom" overlay="Setup node settings" overlayClassName="tooltip">
-                <div className={styles.pulse}>
-                  <FontAwesomeIcon icon={faWrench} />
-                </div>
-              </Tooltip>
-            );
-          }
+        <div className={styles.state}>
+          {(() => {
+            if (!process.setup && NODE_TYPES.step === type) {
+              return (
+                <Tooltip placement="bottom" overlay="Setup node settings" overlayClassName="tooltip">
+                  <div className={styles.pulse}>
+                    <FontAwesomeIcon icon={faWrench} />
+                  </div>
+                </Tooltip>
+              );
+            }
 
-          switch (state) {
-            case MACHINE_STATE.cold:
-              return `❄`;
-            case MACHINE_STATE.preparing:
-              return (
-                <Tooltip placement="bottom" overlay="Node is warming up" overlayClassName="tooltip">
-                  <FontAwesomeIcon icon={faSpinner} spin size="1x" />
-                </Tooltip>
-              );
-            case MACHINE_STATE.ready:
-              return (
-                <Tooltip placement="bottom" overlay="Node is ready" overlayClassName="tooltip">
-                  <span>✓</span>
-                </Tooltip>
-              );
-            default:
-              return null;
-          }
-        })()}
+            switch (state) {
+              case MACHINE_STATE.cold:
+                return `❄`;
+              case MACHINE_STATE.preparing:
+                return (
+                  <Tooltip placement="bottom" overlay="Node is warming up" overlayClassName="tooltip">
+                    <FontAwesomeIcon icon={faSpinner} spin size="1x" />
+                  </Tooltip>
+                );
+              case MACHINE_STATE.ready:
+                return (
+                  <Tooltip placement="bottom" overlay="Node is ready" overlayClassName="tooltip">
+                    <span>✓</span>
+                  </Tooltip>
+                );
+              default:
+                return null;
+            }
+          })()}
+        </div>
         {NODE_TYPES.step === type &&
           busy.map((state, index) => (
             <span key={index}>

@@ -242,7 +242,7 @@ class Node extends Component {
 
       if (!setup) {
         //console.log('Please set up time machine!');
-        this.props.notificationsAdd({ message: 'Please set up time node settings' });
+        this.props.notificationsAdd({ message: 'Please fix up node settings' });
       } else {
         const time = timeParser(setup);
 

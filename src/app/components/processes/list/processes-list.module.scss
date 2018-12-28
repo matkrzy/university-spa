@@ -1,7 +1,20 @@
+@import 'app/assets/styles/variables';
+
 .container {
   padding: 25px 50px;
+  color: $input-text-color;
 }
 
 .list {
   padding: 0 20px;
+
+  a {
+    font-weight: 300;
+    margin-right: 10px;
+    color: $input-text-color;
+  }
+}
+
+.removeButton {
+  background-color: #6d7804;
 }
