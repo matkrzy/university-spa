@@ -84,8 +84,9 @@ class ConnectionLine extends Component {
   getElementClientRect = type => {
     const id = this.props[type];
     const IO = type === 'start' ? NODE_OUTPUT : NODE_INPUT;
+    const nodeId = type === 'start' ? this.props.startNode : this.props.endNode;
 
-    const element = document.querySelectorAll(`[data-id='${id}'][data-type='${IO}']`)[0];
+    const element = document.querySelectorAll(`[data-id='${nodeId}'] [data-id='${id}'][data-type='${IO}']`)[0];
 
     return !!element ? element.getBoundingClientRect() : {};
   };

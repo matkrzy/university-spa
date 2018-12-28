@@ -81,9 +81,13 @@ export class NodeEditForm extends Component {
     field: 'outputs',
     updates: {
       'process.products': (value, allValues) => {
-        delete allValues.process.products[this.processProductToRemove];
+        if (allValues.process.products) {
+          delete allValues.process.products[this.processProductToRemove];
 
-        this.processProductToRemove = undefined;
+          this.processProductToRemove = undefined;
+
+          return allValues.process.products;
+        }
 
         return allValues.process.products;
       },
@@ -132,10 +136,10 @@ export class NodeEditForm extends Component {
             mutators: { push, remove },
           },
         }) => (
-          <form onSubmit={handleSubmit} name="form" id="form" autoComplete="off">
+          <form onSubmit={handleSubmit} autoComplete="off">
             <Field
               component={TextFieldComponent}
-              name="title"
+              name="label"
               placeholder="enter node title"
               label="Node title"
               id="test"
@@ -232,6 +236,7 @@ export class NodeEditForm extends Component {
                               type="number"
                               specializedProps={{ min: 1, max: 5, step: 1 }}
                               asyncErrors
+                              disabled={type === NODE_TYPES.marketOut}
                             />
                             {type === NODE_TYPES.buy || type === NODE_TYPES.marketOut ? (
                               <Field
@@ -299,7 +304,7 @@ export class NodeEditForm extends Component {
 
                       const options = Object.values(values.inputs || {}).map(({ label, productId }) => ({
                         id: productId,
-                        label: market[productId].label,
+                        label: (market[productId] || {}).label,
                       }));
 
                       const { label } = market[productId];

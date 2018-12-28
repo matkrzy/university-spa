@@ -1,5 +1,8 @@
+//$button-color: rgba(#CC6700, 1);
+$button-color: #6D7804;
+
 .button {
-  background-color: #007bff;
+  background-color: $button-color;
   border-radius: 0.25rem;
   border: 1px solid transparent;
   color: #fff;
@@ -17,8 +20,8 @@
 }
 
 .button:not(.disabled):hover {
-  background-color: #0069d9;
-  border-color: #0062cc;
+  background-color: $button-color;
+  border-color: $button-color;
   color: #fff;
 }
 

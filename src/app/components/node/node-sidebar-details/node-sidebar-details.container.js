@@ -6,19 +6,19 @@ import { NodeSidebarDerails } from './node-sidebar-details.component';
 const mapStateToProps = ({ market: { data: market } }, { params: node }) => {
   const inputs = node
     .getInputsRef()
-    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
+    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connectionsId } }) => ({
       label,
       maxConnections,
-      connections,
+      connectionsId,
       id,
     }));
 
   const outputs = node
     .getOutputsRef()
-    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connections } }) => ({
+    .map(({ props: { label, maxConnections = 1, id, disabled }, state: { connectionsId } }) => ({
       label,
       maxConnections,
-      connections,
+      connectionsId,
       id,
     }));
 

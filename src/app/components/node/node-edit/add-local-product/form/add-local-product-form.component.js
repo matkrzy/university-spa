@@ -9,8 +9,8 @@ export class AddLocalProductFormComponent extends Component {
       <Form
         initialValues={this.props.initialValues}
         onSubmit={this.props.onSubmit}
-        render={({ handleSubmit, pristine, invalid, values }) => (
-          <form onSubmit={handleSubmit} name="form" id="form" autoComplete="off">
+        render={({ handleSubmit }) => (
+          <form onSubmit={handleSubmit} autoComplete="off">
             <Field component={TextFieldComponent} name="label" placeholder="enter product name" label="Product name" />
             <Button type="submit">Add</Button>
           </form>

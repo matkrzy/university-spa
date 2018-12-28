@@ -16,7 +16,7 @@ import {
   ConnectionLineActionsContext,
 } from '../contexts';
 
-import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES } from '../dictionary';
+import { MOUSE_MOVE, MOUSE_UP, NODE_TYPES, NODE_INPUT, NODE_OUTPUT } from '../dictionary';
 
 import {
   connectionRemoveEvent,
@@ -70,10 +70,11 @@ export class SpaceComponent extends Component {
       onContextMenu: this.handleContextMenuState,
       onDoubleClick: this.handleNodeDoubleClick,
       onEdit: this.handleNodeEdit,
-      onRemove: this.handleNodeRemove,
+      onRemove: this.handleNodeRemoveModal,
       onUpdate: this.handleNodeUpdate,
       onCreateRef: this.handleNodeRef,
       getConnectionById: this.getConnectionById,
+      getConnectionsIdByPortId: this.getConnectionsIdByPortId,
     };
 
     this.connectionLineActions = {
@@ -125,7 +126,10 @@ export class SpaceComponent extends Component {
    * @param {NodeComponent[]} nodes - list of nodes read from saved model
    * @return {*}
    */
-  prepareNodes = nodes => nodes.map(node => <NodeComponent {...node} key={node.id} />);
+  prepareNodes = nodes =>
+    nodes.map(node => {
+      return <NodeComponent {...node} key={node.id} />;
+    });
 
   /**
    * Allow to save `GraphSpace` model to local storage as `JSON` string
@@ -222,7 +226,7 @@ export class SpaceComponent extends Component {
       }),
       () => {
         callback(this.currentConnection);
-        connectionCalculateEvent({ calculateConnections: this.calculateConnections });
+        connectionCalculateEvent({ connectionId: this.currentConnection });
       },
     );
   };
@@ -284,11 +288,10 @@ export class SpaceComponent extends Component {
         },
       }),
       () => {
-        callback(this.currentConnection);
         const connection = this.state.connections[this.currentConnection];
         this.currentConnection = undefined;
+        connectionAddEvent({ ...connection });
 
-        connectionAddEvent({ calculateConnections: this.calculateConnections, ...connection });
         spaceModelSaveEvent();
       },
     );
@@ -352,7 +355,7 @@ export class SpaceComponent extends Component {
    * @param {Function} params.onClose - function called when context menu is closed
    * @param {Function} callback
    */
-  handleContextMenuState = (state, params, callback) =>
+  handleContextMenuState = (state, params) =>
     this.setState(prev => ({
       isContextMenuOpen: state,
       contextMenuPosition: prev.mousePos,
@@ -370,10 +373,10 @@ export class SpaceComponent extends Component {
   handleConnectionRemove = (id, callback) => {
     const connection = this.getConnectionById(id);
 
-    this.setState(this.removeConnection(id), () => {
+    this.setState(this.removeConnection(id), async () => {
       !!callback && callback();
 
-      connectionRemoveEvent({ ...connection, calculateConnections: this.calculateConnections });
+      await connectionRemoveEvent({ ...connection, connectionId: id, calculateConnections: this.calculateConnections });
 
       spaceModelSaveEvent();
     });
@@ -435,10 +438,10 @@ export class SpaceComponent extends Component {
           return inputs.map((input, index) => {
             const item = componentInputs[index];
             const id = item.getId();
-            const connectionId = item.getConnectionId();
+            const connectionsId = item.getConnectionsId();
             const connections = item.getConnections();
 
-            return { ...input, id, connectionId, connections };
+            return { ...input, id, connectionsId, connections };
           });
         };
 
@@ -450,10 +453,10 @@ export class SpaceComponent extends Component {
 
             const item = componentOutputs[index];
             const id = item.getId();
-            const connectionId = item.getConnectionId();
+            const connectionsId = item.getConnectionsId();
             const connections = item.getConnections();
 
-            return { ...output, id, connectionId, connections };
+            return { ...output, id, connectionsId, connections };
           });
         };
 
@@ -526,11 +529,11 @@ export class SpaceComponent extends Component {
 
     delete this.nodeRefs[id];
 
-    const removeConnectionByIOId = id => {
+    const removeConnectionByIOId = portId => {
       for (const key in connections) {
-        const { start, end } = connections[key];
+        const { start, end, startNode, endNode } = connections[key];
 
-        if (start === id || end === id) {
+        if ((start === portId && startNode === id) || (end === portId && endNode === id)) {
           delete connections[key];
         }
       }
@@ -543,6 +546,10 @@ export class SpaceComponent extends Component {
       connectionCalculateEvent({ calculateConnections: this.calculateConnections });
       spaceModelSaveEvent();
     });
+  };
+
+  handleNodeRemoveModal = params => {
+    this.props.onNodeRemove({ label: params.label, removeNode: () => this.handleNodeRemove(params) });
   };
 
   /**
@@ -622,6 +629,45 @@ export class SpaceComponent extends Component {
     return this.nodeRefs[nodeId];
   };
 
+  getConnectionsIdByPortId = (portId, type, nodeId) =>
+    Object.keys(this.state.connections).filter(key => {
+      const { start, end, startNode, endNode } = this.state.connections[key];
+
+      if (type === NODE_INPUT) {
+        return portId === end && endNode === nodeId;
+      }
+
+      if (type === NODE_OUTPUT) {
+        return portId === start && startNode === nodeId;
+      }
+
+      return false;
+    });
+
+  handleContextMenu = e => {
+    e.preventDefault();
+
+    const contextMenu = {
+      options: [
+        {
+          label: 'Add node',
+          events: {
+            onClick: () => {
+              console.log('add node');
+
+              this.props.onNodeAdd({ addNode: this.handleNodeAdd });
+
+              this.handleContextMenuState(false);
+            },
+          },
+        },
+      ],
+      onClose: () => this.setState({ contextMenuOpen: false }),
+    };
+
+    this.handleContextMenuState(true, contextMenu);
+  };
+
   render() {
     const currentConnectionContext = this.currentConnection
       ? this.getConnectionById(this.currentConnection)
@@ -630,11 +676,11 @@ export class SpaceComponent extends Component {
     let newLine = null;
 
     if (this.state.connecting) {
-      let start = this.state.connections[this.currentConnection].start;
+      const { start, startNode } = this.state.connections[this.currentConnection];
 
       let end = { x: this.state.mousePos.x, y: this.state.mousePos.y };
 
-      newLine = <LineComponent start={start} end={end} connecting />;
+      newLine = <LineComponent start={start} startNode={startNode} end={end} endNode={undefined} connecting />;
     }
 
     return (
@@ -644,7 +690,7 @@ export class SpaceComponent extends Component {
             <MarketContext.Provider value={this.props.market}>
               <CurrentConnectionContext.Provider value={currentConnectionContext}>
                 <ConnectionLineActionsContext.Provider value={this.connectionLineActions}>
-                  <section id="graphSpace" className={styles.space}>
+                  <section id="graphSpace" className={styles.space} onContextMenu={this.handleContextMenu}>
                     <ContextMenuComponent
                       position={this.state.contextMenuPosition}
                       isOpen={this.state.isContextMenuOpen}
@@ -655,12 +701,14 @@ export class SpaceComponent extends Component {
                     <SvgComopnent ref="svgComponent">
                       {this.state.showConnections &&
                         Object.entries(this.state.connections).map(
-                          ([key, { start, end, startNode }]) =>
+                          ([key, { start, end, startNode, endNode }]) =>
                             !!start && !!end ? (
                               <LineComponent
                                 id={key}
                                 start={start}
                                 end={end}
+                                startNode={startNode}
+                                endNode={endNode}
                                 key={key}
                                 //process={this.getNodeById(startNode).getProcess()}
                                 //machineState={this.getNodeById(startNode).getState()}

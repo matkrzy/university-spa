@@ -11,6 +11,17 @@ export class SelectFieldComponent extends Component {
 
   handleChange = selectedOption => {
     this.props.input.onChange(selectedOption.id);
+    this.props.input.onBlur();
+  };
+
+  handleFocus = e => {
+    document.body.classList.add('ignore-react-onclickoutside');
+    this.props.input.onFocus(e);
+  };
+
+  handleBlur = e => {
+    document.body.classList.remove('ignore-react-onclickoutside');
+    this.props.input.onBlur(e);
   };
 
   render() {
@@ -25,11 +36,20 @@ export class SelectFieldComponent extends Component {
       disabled,
     });
 
+    const customStyles = {
+      menuPortal: provided => {
+        return { ...provided, zIndex: 99999999999 };
+      },
+    };
+
     return (
       <label className={classNames('form-control', this.props.className)}>
         {!!label && <span className="label">{label}</span>}
 
         <Select
+          onFocus={this.handleFocus}
+          onBlur={this.handleBlur}
+          blurInputOnSelect={true}
           isDisabled={this.props.disabled}
           className={inputClassNames}
           value={options.find(({ id }) => id === fixedValue || id === input.value)}
@@ -38,10 +58,11 @@ export class SelectFieldComponent extends Component {
           placeholder={placeholder}
           getOptionLabel={({ label }) => label}
           getOptionValue={({ id }) => id}
-          //menuPortalTarget={document.body}
-          //menuPlacement={'auto'}
-          //menuPosition={'absolute'}
+          menuPlacement={'bottom'}
           components={components}
+          menuPortalTarget={document.body}
+          styles={customStyles}
+          classNamePrefix={'react-select'}
         />
         {error ? <span>{meta.error}</span> : <span> </span>}
       </label>

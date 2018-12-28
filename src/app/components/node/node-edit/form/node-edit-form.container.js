@@ -39,7 +39,7 @@ const mapStateToProps = ({ modals, market, marketLocal }, { modalName, toggle })
       }
     },
     initialValues: {
-      title: node.props.title,
+      label: node.props.label,
       id: node.getId(),
       inputs,
       outputs,
