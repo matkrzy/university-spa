@@ -3,10 +3,11 @@ import classNames from 'classnames';
 import Tooltip from 'rc-tooltip';
 import { compose } from 'redux';
 import get from 'lodash/get';
+import uniq from 'lodash/uniq';
 
 import { withCurrentConnection, withPortEvents, withNodeActions } from '../../contexts';
 
-import { NODE_INPUT, NODE_TYPES } from '../../dictionary';
+import { NODE_INPUT, NODE_OUTPUT, NODE_TYPES } from '../../dictionary';
 
 import { connectionsEventBus } from '../../../events/connections/connectionsEventBus';
 import {
@@ -28,7 +29,10 @@ class NodeListItem extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { connections: props.connections, connectionId: props.connectionId };
+    this.state = {
+      connectionsId:
+        props.connectionsId || this.props.nodeActions.getConnectionsIdByPortId(props.id, props.type, props.nodeId),
+    };
   }
 
   /**
@@ -41,12 +45,13 @@ class NodeListItem extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, prevContext) {
-    if (this.state.connectionId && prevProps.productId !== this.props.productId) {
+    if (prevProps.productId !== this.props.productId) {
       const {
         nodeActions: { onConnectionRemove },
       } = this.props;
 
-      onConnectionRemove(this.state.connectionId, () => this.setState({ connectionId: undefined }));
+      this.state.connectionsId.forEach(connection => onConnectionRemove(connection));
+      this.setState({ connectionsId: [] });
     }
   }
 
@@ -65,9 +70,9 @@ class NodeListItem extends Component {
    */
   getId = () => this.props.id;
 
-  getConnectionId = () => this.state.connectionId;
+  getConnectionsId = () => this.state.connectionsId;
 
-  getConnections = () => this.state.connections;
+  getConnections = () => this.state.connectionsId.length;
 
   getProductId = () => this.props.productId;
 
@@ -77,10 +82,12 @@ class NodeListItem extends Component {
    * Helper for calculation connections for specific node based on node ID and type of item
    * @param {updateConnectionEvent} e - custom update connection event created in `GraphSpace`
    */
-  calculateConnections = payload => {
-    const { calculateConnections } = payload;
+  calculateConnections = () => {
+    const { id, type, nodeId, nodeActions } = this.props;
 
-    this.setState({ connections: calculateConnections(this.props.id, this.props.type) });
+    this.setState({
+      connectionsId: nodeActions.getConnectionsIdByPortId(id, type, nodeId),
+    });
   };
 
   /**
@@ -94,12 +101,14 @@ class NodeListItem extends Component {
     const { portsEvents, type } = this.props;
     const { onMouseDown } = portsEvents[type];
 
-    if (this.state.connections >= this.props.maxConnections || this.props.disabled) {
+    const connectionsAmount = this.state.connectionsId.length;
+
+    if (connectionsAmount >= this.props.maxConnections || this.props.disabled) {
       return null;
     }
 
     onMouseDown(e, { id: this.props.id, nodeId: this.props.nodeId, productId: this.props.productId }, connectionId =>
-      this.setState({ connectionId }),
+      this.setState(prev => ({ connectionsId: uniq([...prev.connectionsId, connectionId]) })),
     );
   };
 
@@ -116,7 +125,9 @@ class NodeListItem extends Component {
       this.props.currentConnection.productId &&
       this.props.currentConnection.productId === this.props.productId;
 
-    if (this.state.connections >= this.props.maxConnections || this.props.disabled || !isCompatible) {
+    const connectionsAmount = this.state.connectionsId.length;
+
+    if (connectionsAmount >= this.props.maxConnections || this.props.disabled || !isCompatible) {
       return null;
     }
 
@@ -124,8 +135,25 @@ class NodeListItem extends Component {
     const { onMouseUp } = portsEvents[type];
 
     onMouseUp(e, { id: this.props.id, nodeId: this.props.nodeId, productId: this.props.productId }, connectionId =>
-      this.setState({ connectionId }),
+      this.setState(prev => ({ connectionsId: uniq([...prev.connectionsId, connectionId]) })),
     );
+  };
+
+  shouldShowAmount = () => {
+    const { nodeType, type } = this.props;
+
+    if (nodeType === NODE_TYPES.marketIn || nodeType === NODE_TYPES.marketOut) {
+      return false;
+    } else {
+      if (
+        (nodeType === NODE_TYPES.buy && type === NODE_INPUT) ||
+        (nodeType === NODE_TYPES.sell && type === NODE_OUTPUT)
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
   /**
@@ -133,17 +161,30 @@ class NodeListItem extends Component {
    * @return {*}
    */
   renderElement = () => {
-    const { nodeType, type } = this.props;
-    const showAmount = nodeType === NODE_TYPES.step;
+    const { type } = this.props;
+    const showAmount = this.shouldShowAmount();
+
+    const connectionsAmount = this.state.connectionsId.length;
 
     const indicatorClassNames = classNames(styles[this.props.type], styles.indicator, {
       [styles.disabled]:
-        this.state.connections >= this.props.maxConnections ||
+        connectionsAmount >= this.props.maxConnections ||
         this.props.disabled ||
         (this.props.currentConnection && this.props.currentConnection.productId !== this.props.productId),
     });
 
-    const connection = this.props.nodeActions.getConnectionById(this.props.connectionId);
+    const connections = this.state.connectionsId.map(
+      connectionId => this.props.nodeActions.getConnectionById(connectionId) || {},
+    );
+
+    const connection = connections.find(connection => {
+      //const { productId } = connection;
+
+      //if (productId && productId === this.props.productId) {
+      return connection;
+      //}
+    });
+
     const nodeId = type === NODE_INPUT && connection ? connection.startNode : this.props.nodeId;
     const amount = get(this.props.goods, [nodeId, this.props.productId], 0);
 
@@ -169,7 +210,9 @@ class NodeListItem extends Component {
   };
 
   render() {
-    if (this.state.connections >= Number(this.props.maxConnections)) {
+    const connectionsAmount = this.state.connectionsId.length;
+
+    if (connectionsAmount >= Number(this.props.maxConnections)) {
       return (
         <Tooltip
           placement={this.props.type === NODE_INPUT ? 'left' : 'right'}

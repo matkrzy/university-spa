@@ -1,0 +1,39 @@
+$color: #fff;
+
+.pulse {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5px;
+
+  &:after {
+    position: absolute;
+    width: 25%;
+    height: 25%;
+    display: block;
+    content: '';
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 rgba($color, 0.4);
+    animation: pulse 2s infinite;
+  }
+}
+
+$size: 15px;
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba($color, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 $size rgba($color, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba($color, 0);
+  }
+}
+
+.state{
+  margin-right: 5px;
+}

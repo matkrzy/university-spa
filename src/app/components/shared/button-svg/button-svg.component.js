@@ -6,7 +6,7 @@ export class ButtonSvg extends Component {
   renderButton = () => {
     const { disabled } = this.props;
 
-    const buttonClassNames = classNames(this.props.className, {
+    const buttonClassNames = classNames(this.props.className, 'cursor-pointer', {
       disabled: disabled,
     });
 

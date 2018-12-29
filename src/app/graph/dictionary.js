@@ -13,7 +13,15 @@ export const NODE_TYPES = {
   marketIn: 'marketIn',
   buy: 'buy',
   sell: 'sell',
-  step: 'process_step',
+  step: 'processStep',
+};
+
+export const NODE_TYPES_LABELS = {
+  marketOut: 'Market Out',
+  marketIn: 'Market in',
+  buy: 'Buy',
+  sell: 'Sell',
+  processStep: 'Process Step',
 };
 
 //**MACHINE STATE

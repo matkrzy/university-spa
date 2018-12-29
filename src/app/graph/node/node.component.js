@@ -28,6 +28,8 @@ import { CONNECTION_REMOVE, CONNECTION_ADD } from '../../events/connections/conn
 
 import { processGoodsUpdate } from '../../redux/process/process.actions';
 
+import { notificationsAdd } from 'app/redux/notifications/notifications.actions';
+
 import styles from './node.module.scss';
 
 /** Class representing a `NodeComponent`
@@ -37,7 +39,7 @@ class Node extends Component {
   static defaultProps = {
     inputs: [],
     outputs: [],
-    title: 'Node',
+    label: 'Node',
     draggableProps: {},
     type: NODE_TYPES.step,
   };
@@ -95,7 +97,12 @@ class Node extends Component {
   }
 
   handleGoodsEmit = () => {
-    const { type } = this.props;
+    const { type, process } = this.props;
+
+    //guard for broken setup
+    if (!process || !process.setup) {
+      return false;
+    }
 
     if (type === NODE_TYPES.step) {
       const {
@@ -117,9 +124,8 @@ class Node extends Component {
         const { productId: requiredProductId, amount: requiredAmount } = product;
 
         const inputs = this.getInputsRef();
-        const connections = inputs
-          .map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()))
-          .filter(connection => connection !== undefined);
+        const connectionsId = inputs.reduce((prev, next) => [...prev, ...next.getConnectionsId()], []);
+        const connections = connectionsId.map(id => this.props.nodeActions.getConnectionById(id));
 
         if (!connections.length) {
           return false;
@@ -143,7 +149,7 @@ class Node extends Component {
     connectionsEventBus.removeListener(CONNECTION_REMOVE, this.handleConnectionsChange);
     processEventBus.removeListener(PROCESS_GOODS_EMIT, this.handleGoodsEmit);
 
-    this.timers.map(timer => {
+    this.timers.forEach(timer => {
       clearTimeout(timer);
     });
   }
@@ -153,14 +159,14 @@ class Node extends Component {
     const { id } = this.props;
 
     if (startNode === id || endNode === id) {
-      this.setState({ inputsRef: {}, outputsRef: {} }, () => this.forceUpdate());
+      this.setState({ inputsRef: {}, outputsRef: {} });
     }
   };
 
   preparePorts = ({ ports, type, defaultLabel, refName }) => {
-    return ports.map(({ label, id, maxConnections, disabled, productId, connectionId, connections }) => (
+    return ports.map(({ label, id, maxConnections, disabled, productId, connectionsId, connections }) => (
       <NodeListItemComponent
-        connectionId={connectionId}
+        connectionsId={connectionsId}
         disabled={disabled}
         id={id}
         key={id}
@@ -235,7 +241,8 @@ class Node extends Component {
       const { setup } = process;
 
       if (!setup) {
-        console.log('Please set up time machine!');
+        //console.log('Please set up time machine!');
+        this.props.notificationsAdd({ message: 'Please fix up node settings' });
       } else {
         const time = timeParser(setup);
 
@@ -271,7 +278,7 @@ class Node extends Component {
 
         products[newProductId].requirements.forEach(async ({ productId, amount }) => {
           const inputs = this.getInputsRef();
-          const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionId()));
+          const connections = inputs.map(input => this.props.nodeActions.getConnectionById(input.getConnectionsId()));
           const { startNode } = connections.find(connection => productId === connection.productId);
 
           await this.props.processGoodsUpdate({ productId, amount: amount * -1, nodeId: startNode });
@@ -304,7 +311,7 @@ class Node extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { process } = this.props;
+    const { process = {} } = this.props;
     const { state } = this.state;
 
     if (!!process.setup && process.setup !== prevProps.process.setup && state === MACHINE_STATE.cold) {
@@ -418,6 +425,7 @@ class Node extends Component {
                 inputs: this.getInputsRef(),
                 outputs: this.getOutputsRef(),
                 id: this.props.id,
+                label: this.props.label,
               };
 
               onContextMenu(false);
@@ -478,7 +486,8 @@ class Node extends Component {
   };
 
   render() {
-    const { type } = this.props;
+    const { type, process = {} } = this.props;
+    const { setup } = process;
 
     const inputs = this.preparePorts({
       ports: this.getInputs(),
@@ -498,6 +507,7 @@ class Node extends Component {
       [styles.selected]: this.state.selected,
       [styles.disabled]: this.props.disabled,
       [styles.dragging]: this.state.dragging,
+      [styles.broken]: !setup && NODE_TYPES.step === type,
     });
 
     const headerClassNames = classNames(styles.header, {
@@ -525,6 +535,7 @@ class Node extends Component {
           className={nodeClassNames}
           onDoubleClick={this.handleClick}
           onContextMenu={this.handleContextMenu}
+          data-id={this.props.id}
         >
           <NodeTitleComponent
             {...this.props}
@@ -534,7 +545,7 @@ class Node extends Component {
           />
 
           <div className={styles.body}>
-            <NodeList>{inputs}</NodeList>
+            <NodeList type={NODE_INPUT}>{inputs}</NodeList>
 
             {type === NODE_TYPES.buy && (
               <BuyButtonComponent outputs={this.getOutputsRef()} inputs={this.getInputsRef()} nodeId={this.props.id} />
@@ -547,13 +558,13 @@ class Node extends Component {
                   inputs={this.getInputsRef()}
                   nodeId={this.props.id}
                   startNode={
-                    this.props.nodeActions.getConnectionById(this.getInputsRef()[0]?.getConnectionId())?.startNode
+                    this.props.nodeActions.getConnectionById(this.getInputsRef()[0]?.getConnectionsId())?.startNode
                   }
                 />
               </>
             )}
 
-            <NodeList>{outputs}</NodeList>
+            <NodeList type={NODE_OUTPUT}>{outputs}</NodeList>
           </div>
         </div>
       </Draggable>
@@ -565,6 +576,7 @@ const mapStateToProps = ({ process: { goods } }) => ({ goods });
 
 const mapDispatchToProps = {
   processGoodsUpdate,
+  notificationsAdd,
 };
 
 export const NodeComponent = compose(

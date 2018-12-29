@@ -21,10 +21,6 @@ export const ModalContentComponent = onClickOutside(
       }
     };
 
-    handleClickOutside = () => {
-      this.props.handleClickOutside();
-    };
-
     render() {
       return this.props.children;
     }

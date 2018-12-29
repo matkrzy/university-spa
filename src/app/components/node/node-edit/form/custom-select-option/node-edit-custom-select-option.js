@@ -15,8 +15,6 @@ const handleEditClick = e => {
 const handleRemoveClick = id => e => {
   e.stopPropagation();
 
-  console.log(id);
-
   marketGoodsRemove({ payload: { productId: id } });
 };
 

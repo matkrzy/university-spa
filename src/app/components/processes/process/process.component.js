@@ -3,6 +3,8 @@ import React, { Component, Fragment } from 'react';
 import { SpaceComponent } from 'app/graph/space/space.component';
 
 import { NodeEditModalComponent } from '../../node/node-edit/node-edit-modal.component';
+import { NodeAddModalComponent } from '../../node/node-add/node-add-modal.component';
+import { NodeRemoveConfirmationModalComponent } from '../../node/node-remove-confirmation/node-remove-confirmation-modal.component';
 import { SidebarContainer, DotSpinnerComponent } from '../../shared';
 import { NodeSidebarDetailsContainer } from '../../node/node-sidebar-details/node-sidebar-details.container';
 import { AddLocalProductModalComponent } from '../../node/node-edit/add-local-product/add-local-product-modal.component';
@@ -58,6 +60,14 @@ export class ProcessComponent extends Component {
     this.props.sidebarToggle('nodeDetails', { ...node, title: node.props.title });
   };
 
+  handleNodeAdd = params => {
+    this.props.modalToggle('nodeAdd', params);
+  };
+
+  handleNodeRemove = params => {
+    this.props.modalToggle('nodeRemove', params);
+  };
+
   render() {
     const { process, market } = this.props;
     const { id } = this.props.match.params;
@@ -69,14 +79,18 @@ export class ProcessComponent extends Component {
         <SidebarContainer name="nodeDetails" component={NodeSidebarDetailsContainer} />
         <SpaceComponent
           connections={process.connections}
-          nodes={process.nodes}
           market={market}
-          ref={this.space}
-          onNodeEdit={this.handleNodeEdit}
+          nodes={process.nodes}
           onNodeDoubleClick={this.handleNodeDoubleClick}
+          onNodeEdit={this.handleNodeEdit}
+          onNodeAdd={this.handleNodeAdd}
+          onNodeRemove={this.handleNodeRemove}
           onSpaceModelSave={processUpdate(id)}
+          ref={this.space}
         />
         <NodeEditModalComponent />
+        <NodeAddModalComponent />
+        <NodeRemoveConfirmationModalComponent />
         <AddLocalProductModalComponent />
       </Fragment>
     );

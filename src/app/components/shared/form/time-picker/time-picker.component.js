@@ -16,9 +16,13 @@ export class TimePickerComponent extends Component {
     open: false,
   };
 
-  onFocus = () => this.setState({ open: true });
+  onFocus = e => {
+    this.setState({ open: true }, () => this.props.input.onFocus(e));
+  };
 
-  onBlur = () => this.setState({ open: false });
+  onBlur = e => {
+    this.setState({ open: false }, () => this.props.input.onBlur(e));
+  };
 
   onChange = value => this.props.input.onChange(value.format(this.props.format));
 
@@ -51,7 +55,7 @@ export class TimePickerComponent extends Component {
   };
 
   render() {
-    const { input, meta, placeholder, label, disabled, asyncErrors, showSecond, format } = this.props;
+    const { input, meta, placeholder, label, disabled, asyncErrors, showSecond } = this.props;
 
     const invalid = meta.invalid;
     const error = asyncErrors ? meta.error : meta.touched && meta.error;

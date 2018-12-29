@@ -38,7 +38,7 @@ export class NodeSidebarDerails extends Component {
       <div className="sidebar__section ">
         <div className="section__title">{portType}</div>
         <div className="section__body">
-          {ports.map(({ label, connections, maxConnections, id }, index) => (
+          {ports.map(({ label, connectionsId, maxConnections, id }, index) => (
             <div
               className={styles.port}
               key={index}
@@ -48,7 +48,7 @@ export class NodeSidebarDerails extends Component {
               <div className={styles.portLabel}>
                 <strong>{label}</strong>
               </div>
-              <div>connections: {`${connections}/${maxConnections}`}</div>
+              <div>connections: {`${connectionsId.length}/${maxConnections}`}</div>
             </div>
           ))}
         </div>
@@ -95,7 +95,7 @@ export class NodeSidebarDerails extends Component {
   };
 
   render() {
-    const { process } = this.props;
+    const { process = {} } = this.props;
     const { duration, setup, products } = process;
 
     return (

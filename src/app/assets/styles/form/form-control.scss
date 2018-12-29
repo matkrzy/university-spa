@@ -31,4 +31,8 @@
   & .active {
     border-color: $input-border-color-active;
   }
+
+  & .disabled {
+    background: hsl(0, 0%, 95%);
+  }
 }

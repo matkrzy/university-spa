@@ -1,29 +1,33 @@
 $border-radius: 4px;
+$background: rgba(#1f2324, 0.8);
 
 .node {
-  min-width: 150px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  box-shadow: 6px 6px 28px -2px rgba(0, 0, 0, 0.4);
-  background-color: rgba(0, 0, 0, 0.7);
-  user-select: none;
-  display: inline-block;
   color: #fff;
   z-index: 9999;
+  min-width: 150px;
+  user-select: none;
   position: absolute;
+  border-radius: 4px;
+  display: inline-block;
+  background-color: $background;
+  border: 1px solid transparent;
+  box-shadow: 6px 6px 28px -2px rgba(0, 0, 0, 0.4);
+}
+
+.broken {
+  border-color: red;
 }
 
 .header {
   cursor: move;
-  color: white;
   height: 23px;
+  display: flex;
   font-size: 13px;
-  padding-top: 3px;
+  padding: 3px 10px 0 10px;
   font-weight: 600;
-  padding-left: 10px;
   letter-spacing: 1px;
-  background: rgba(248, 80, 50, 1);
-  border-bottom: 1px solid #353535;
+  color: rgba(#fff, 0.8);
+  border-bottom: 1px solid rgba(#353535, 0.5);
   border-top-left-radius: $border-radius;
   border-top-right-radius: $border-radius;
 

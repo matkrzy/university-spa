@@ -66,7 +66,6 @@ export class BuyButton extends Component {
       <Form onSubmit={this.onSubmit} initialValues={{ amount: 1 }} ref={this.formRef}>
         {({ handleSubmit, invalid }) => (
           <form onSubmit={handleSubmit} className={styles.form}>
-            {/*<div>state: {get(this.props.goods, [this.props.nodeId, this.getProductId()], 0)}</div>*/}
             <Field component={TextFieldComponent} name="amount" className={styles.input} />
             <Button
               disabled={!this.canBuy()}
