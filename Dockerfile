@@ -7,6 +7,8 @@ COPY . ./
 RUN yarn build
 
 FROM nginx:1.12-alpine
+RUN rm -rf /etc/nginx/conf.d
+COPY conf /etc/nginx
 COPY --from=builder /usr/src/app/build /usr/share/nginx/html
 EXPOSE $PORT
 CMD ["nginx", "-g", "daemon off;"]
