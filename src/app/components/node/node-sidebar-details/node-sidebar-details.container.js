@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 
-import { NodeSidebarDerails } from './node-sidebar-details.component';
+import { NodeSidebarDetails } from './node-sidebar-details.component';
 
 const mapStateToProps = ({ market: { data: market } }, { params: node }) => {
   const inputs = node
@@ -32,4 +32,4 @@ export const NodeSidebarDetailsContainer = compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
-)(NodeSidebarDerails);
+)(NodeSidebarDetails);

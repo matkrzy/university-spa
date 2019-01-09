@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Form, Field } from 'react-final-form';
+import { required } from 'redux-form-validators';
 
 import { TextFieldComponent, Button } from 'app/components/shared';
 
@@ -22,10 +23,11 @@ export class NodeAddForm extends Component {
                 name="label"
                 placeholder="enter process title"
                 label="Process title"
+                validate={required()}
               />
             </div>
             <Button className={styles.button} disabled={invalid} type="submit">
-              Add
+              add
             </Button>
             <Button className={styles.button} onClick={this.props.toggle}>
               cancel

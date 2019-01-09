@@ -24,7 +24,8 @@
     font-size: 14px;
   }
 
-  & .invalid {
+  & .invalid,
+  & .invalid .react-select__control {
     border-color: $input-border-color-invalid !important;
   }
 

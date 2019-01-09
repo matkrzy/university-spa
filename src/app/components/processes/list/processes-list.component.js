@@ -35,7 +35,7 @@ export class ProcessesListComponent extends Component {
             </li>
           ))}
         </ul>
-        <Button onClick={() => this.props.modalToggle('processAdd')}>Add new process</Button>
+        <Button onClick={() => this.props.modalToggle('processAdd')}>add new process</Button>
         <ProcessAddModalComponent />
       </div>
     );
