@@ -27,7 +27,7 @@ export class SelectFieldComponent extends Component {
   render() {
     const { input, meta, placeholder, label, disabled, asyncErrors, options, fixedValue, components } = this.props;
 
-    const invalid = meta.invalid;
+    const invalid = meta.touched && meta.invalid;
     const error = asyncErrors ? meta.error : meta.touched && meta.error;
 
     const inputClassNames = classNames(this.props.inputClassName, {
@@ -37,9 +37,7 @@ export class SelectFieldComponent extends Component {
     });
 
     const customStyles = {
-      menuPortal: provided => {
-        return { ...provided, zIndex: 99999999999 };
-      },
+      menuPortal: provided => ({ ...provided, zIndex: 99999999999 }),
     };
 
     return (

@@ -6,6 +6,7 @@ import createDecorator from 'final-form-calculate';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Tooltip from 'rc-tooltip';
+import { required } from 'redux-form-validators';
 
 import {
   TextFieldComponent,
@@ -37,6 +38,7 @@ export class NodeEditForm extends Component {
       initialValues: props.initialValues,
     };
   }
+
   handleAddNewField = (push, type) => () => {
     const input = {
       id: uuid(),
@@ -176,6 +178,7 @@ export class NodeEditForm extends Component {
                                   name={`${name}.productId`}
                                   options={this.props.products}
                                   components={{ Option: NodeEditCustomSelectOption }}
+                                  validate={required()}
                                 />
                                 {type === NODE_TYPES.step && this.addLocalProductButton}
                               </>
@@ -193,7 +196,7 @@ export class NodeEditForm extends Component {
                       }
                     </FieldArray>
                     {type === NODE_TYPES.step && (
-                      <Button onClick={this.handleAddNewField(push, 'inputs')}>Add input</Button>
+                      <Button onClick={this.handleAddNewField(push, 'inputs')}>add input</Button>
                     )}
                   </>
                 </div>
@@ -216,7 +219,6 @@ export class NodeEditForm extends Component {
                                   className={styles.removeField}
                                   overlayClassName={styles.removeFieldTooltip}
                                   message="Remove all connections before removing"
-                                  //onClick={() => fields.remove(index)}
                                   onClick={() => this.handlePortRemove(fields, remove, index)}
                                   disabled={this.disableRemoveAction(values, 'outputs', index)}
                                 />
@@ -240,6 +242,7 @@ export class NodeEditForm extends Component {
                                 options={this.props.products}
                                 value={values?.inputs[index]?.productId}
                                 disabled={true}
+                                validate={required()}
                               />
                             ) : (
                               <>
@@ -250,6 +253,7 @@ export class NodeEditForm extends Component {
                                   options={this.props.products}
                                   value={values?.inputs[index]?.productId}
                                   components={{ Option: NodeEditCustomSelectOption }}
+                                  validate={required()}
                                 />
                                 {this.addLocalProductButton}
                               </>
@@ -267,7 +271,7 @@ export class NodeEditForm extends Component {
                       }
                     </FieldArray>
                     {type === NODE_TYPES.step && (
-                      <Button onClick={this.handleAddNewField(push, 'outputs')}>Add output</Button>
+                      <Button onClick={this.handleAddNewField(push, 'outputs')}>add output</Button>
                     )}
                   </>
                 </div>
@@ -327,6 +331,7 @@ export class NodeEditForm extends Component {
                                         name={`${field}.productId`}
                                         options={options}
                                         components={{ Option: NodeEditCustomSelectOption }}
+                                        validate={required()}
                                       />
                                       <Field
                                         label="Required input amount"
@@ -334,6 +339,7 @@ export class NodeEditForm extends Component {
                                         name={`${field}.amount`}
                                         type="number"
                                         specializedProps={{ min: 1, step: 1 }}
+                                        validate={required()}
                                       />
                                     </div>
                                   );
@@ -346,9 +352,10 @@ export class NodeEditForm extends Component {
                               name={`${fieldName}.amount`}
                               type="number"
                               specializedProps={{ min: 1, step: 1 }}
+                              validate={required()}
                             />
                             <Button onClick={this.handleAddProcessProduct(push, `${fieldName}.requirements`)}>
-                              Add product
+                              add product
                             </Button>
                           </div>
                         </section>

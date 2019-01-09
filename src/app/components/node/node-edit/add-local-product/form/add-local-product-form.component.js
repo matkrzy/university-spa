@@ -12,7 +12,7 @@ export class AddLocalProductFormComponent extends Component {
         render={({ handleSubmit }) => (
           <form onSubmit={handleSubmit} autoComplete="off">
             <Field component={TextFieldComponent} name="label" placeholder="enter product name" label="Product name" />
-            <Button type="submit">Add</Button>
+            <Button type="submit">add</Button>
           </form>
         )}
       />

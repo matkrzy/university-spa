@@ -650,11 +650,9 @@ export class SpaceComponent extends Component {
     const contextMenu = {
       options: [
         {
-          label: 'Add node',
+          label: 'add node',
           events: {
             onClick: () => {
-              console.log('add node');
-
               this.props.onNodeAdd({ addNode: this.handleNodeAdd });
 
               this.handleContextMenuState(false);

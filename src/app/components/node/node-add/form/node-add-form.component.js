@@ -33,7 +33,7 @@ export class NodeAddForm extends Component {
               <Field label="Type" component={SelectFieldComponent} name="type" options={options} />
             </div>
             <Button className={styles.button} disabled={invalid} type="submit">
-              Add
+              add
             </Button>
             <Button className={styles.button} onClick={this.props.toggle}>
               cancel

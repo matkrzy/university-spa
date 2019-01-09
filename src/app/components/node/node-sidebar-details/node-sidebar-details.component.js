@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSignInAlt, faSignOutAlt, faClock } from '@fortawesome/free-solid-svg-icons';
 
 import styles from './node-sidebar-details.module.scss';
 
 /** Class representing a node sidebar details
  * @extends Component
  */
-export class NodeSidebarDerails extends Component {
+export class NodeSidebarDetails extends Component {
   /**
    * Handler for hover on port label. It highlights port in node by adding class to it
    * @param {string} id - id of node port
@@ -33,10 +35,14 @@ export class NodeSidebarDerails extends Component {
    */
   renderPortInfo = portType => {
     const ports = this.props[portType] || [];
+    const icon = portType === 'inputs' ? faSignInAlt : faSignOutAlt;
 
     return (
       <div className="sidebar__section ">
-        <div className="section__title">{portType}</div>
+        <div className="section__title">
+          <FontAwesomeIcon icon={icon} className={styles.icon} />
+          {portType}
+        </div>
         <div className="section__body">
           {ports.map(({ label, connectionsId, maxConnections, id }, index) => (
             <div
@@ -71,7 +77,7 @@ export class NodeSidebarDerails extends Component {
             return (
               <div className="sidebar__section " key={index}>
                 <div className="section__title">
-                  {'<- '}
+                  <FontAwesomeIcon icon={faSignOutAlt} className={styles.icon} />
                   {outputProduct.label} : {amount}
                 </div>
                 <div className="section__body">
@@ -80,7 +86,7 @@ export class NodeSidebarDerails extends Component {
 
                     return (
                       <div key={index}>
-                        {'-> '}
+                        <FontAwesomeIcon icon={faSignInAlt} className={styles.icon} />
                         {requiredProduct.label}: {amount}
                       </div>
                     );
@@ -107,11 +113,13 @@ export class NodeSidebarDerails extends Component {
         <div className="sidebar__section ">
           <div className="section__body">
             <div>
+              <FontAwesomeIcon icon={faClock} className={styles.icon} />
               <strong>Process time: </strong>
               {duration || '00:00'}
               (mm:ss)
             </div>
             <div>
+              <FontAwesomeIcon icon={faClock} className={styles.icon} />
               <strong>Setup time: </strong>
               {setup || '00:00'}
               (mm:ss)

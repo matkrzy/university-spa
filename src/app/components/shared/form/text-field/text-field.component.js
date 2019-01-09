@@ -10,7 +10,7 @@ export class TextFieldComponent extends Component {
   render() {
     const { input, type, meta, placeholder, label, id, disabled, asyncErrors, specializedProps } = this.props;
 
-    const invalid = meta.invalid;
+    const invalid = meta.touched && meta.invalid;
     const error = asyncErrors ? meta.error : meta.touched && meta.error;
 
     const inputClassNames = classNames('input', this.props.inputClassName, {
